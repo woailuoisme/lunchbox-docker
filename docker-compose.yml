@@ -1,0 +1,372 @@
+networks:
+  frontend:
+    name: frontend
+  backend:
+    name: backend
+
+services:
+  certbot:
+    build:
+      context: ./certbot
+      dockerfile: Dockerfile
+    container_name: certbot
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-certbot}-${TAG:-latest}
+    environment:
+      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-cloudflare} # DNS 提供商: cloudflare 或 aliyun
+      - DOMAIN=${DOMAIN:-jso.lol} # 主域名
+      - EMAIL=${CERTBOT_EMAIL:-admin@jso.lol} # 证书通知邮箱
+      - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
+      - TZ=Asia/Shanghai
+    volumes:
+      - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
+      - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
+      - ./certbot/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
+      - ./certbot/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+    restart: unless-stopped
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        - NGINX_VERSION=${NGINX_VERSION}
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+    container_name: nginx
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-nginx}-${TAG:-latest}
+    restart: always
+    #    user: "${WWWUSER:-33}:${WWWGROUP:-33}"  # 使用环境变量配置容器用户
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+      - ./nginx/snippets/:/etc/nginx/snippets/
+      - ./certbot/conf:/etc/nginx/ssl
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+      - "45432:45432" # PostgresSQL 代理
+      - "46379:46379" # Redis 代理
+    depends_on:
+      authelia:
+        condition: service_started
+      certbot:
+        condition: service_started
+      error-pages:
+        condition: service_started
+      php-fpm:
+        condition: service_healthy
+      minio:
+        condition: service_started
+      meilisearch:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+  php-fpm:
+    build:
+      context: ./php-fpm
+      dockerfile: Dockerfile
+      args:
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - WWWUSER=${WWWUSER:-33}
+        - WWWGROUP=${WWWGROUP:-33}
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-php-8.4}-${TAG:-latest}
+    container_name: php-fpm
+    restart: always
+    user: "${WWWUSER:-33}:${WWWGROUP:-33}" # 使用环境变量或默认值
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ./php-fpm/ssh:/home/www-data/.ssh:ro
+    environment:
+      - APP_PATH=${APP_PATH}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+      - frontend
+    depends_on:
+      - redis
+      - pgbouncer
+      - postgres
+      - minio
+      - meilisearch
+      - rabbitmq
+  #    security_opt:
+  #      - seccomp:unconfined # 关闭 seccomp 限制（仅调试用）
+  #    cap_add:
+  #      - SYS_PTRACE # 允许 ptrace 调试（仅调试用）
+
+  postgres:
+    container_name: postgres
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-postgres}-${TAG:-latest}
+    build:
+      context: ./postgres
+      args:
+        - POSTGRES_VERSION=${POSTGRES_VERSION}
+    volumes:
+      - ${DATA_PATH}postgres:/var/lib/postgresql/data
+      - ${CONFIG_PATH}postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    restart: always
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - backend
+      - frontend
+  pgbouncer:
+    build:
+      context: ./pgbouncer
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-pgbouncer}-${TAG:-latest}
+    container_name: pgbouncer
+    restart: always
+    environment:
+      - TZ=${TIMEZONE}
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "6432:6432"
+    depends_on:
+      - postgres
+    networks:
+      - backend
+
+  redis:
+    container_name: redis
+    build:
+      context: ./redis
+      args:
+        - REDIS_VERSION=${REDIS_VERSION}
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-redis}-${TAG:-latest}
+    volumes:
+      - ${DATA_PATH}redis:/data
+    restart: always
+    command: --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      retries: 3
+      timeout: 5s
+    networks:
+      - backend
+      - frontend
+
+  meilisearch:
+    container_name: meilisearch
+    image: "getmeili/meilisearch:v1.18.0"
+    ports:
+      - "${SEARCH_PORT:-7700}:7700"
+    volumes:
+      - "${DATA_PATH}/meili_data:/meili_data"
+    networks:
+      - frontend
+      - backend
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--spider",
+          "http://127.0.0.1:7700/health",
+        ]
+      retries: 5
+      timeout: 10s
+      interval: 30s
+      start_period: 60s
+
+  rabbitmq:
+    container_name: rabbitmq
+    build:
+      context: ./rabbitmq
+      dockerfile: Dockerfile
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-rabbitmq}-${TAG:-latest}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
+    volumes:
+      - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
+      #      - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
+      - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
+    restart: unless-stopped
+    networks:
+      - backend
+
+  minio:
+    container_name: minio
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - "${DATA_PATH}/minio:/data"
+    command: 'server /data --console-address ":9001"'
+    ports:
+      - "${MINIO_PORT_UI}:9001"
+      - "${MINIO_PORT}:9000"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      retries: 3
+      timeout: 5s
+    networks:
+      - backend
+
+  portainer:
+    image: portainer/portainer-ce:alpine
+    container_name: portainer
+    restart: unless-stopped
+    ports:
+      # HTTPS端口（推荐优先使用）
+      - "9443:9443"
+      # HTTP端口（建议生产环境关闭或仅内网访问）
+      - "8100:9000" # HTTP端口
+      # 代理端口（用于Portainer Agent通信，集群部署必填）
+      - "9100:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DATA_PATH}portainer_data:/data
+    environment:
+      - TZ=Asia/Shanghai
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - watchtower
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  dozzle:
+    container_name: dozzle
+    image: amir20/dozzle:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8180:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/dozzle", "healthcheck"]
+      interval: 3s
+      timeout: 30s
+      retries: 3
+    networks:
+      - frontend
+      - backend
+    depends_on:
+      - watchtower
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  authelia:
+    build:
+      context: ./authelia
+    container_name: authelia
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-authelia}-${TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+    volumes:
+      - ${CONFIG_PATH}authelia:/config
+    environment:
+      - "TZ=${TIMEZONE}"
+      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+    depends_on:
+      - redis
+    networks:
+      - frontend
+      - backend
+
+  error-pages:
+    container_name: error-pages
+    image: tarampampam/error-pages
+    restart: unless-stopped
+    environment:
+      - "TEMPLATE_NAME=app-down"
+      - "SHOW_DETAILS=true"
+      - TZ=Asia/Shanghai
+    ports:
+      - "8580:8080"
+    depends_on:
+      - watchtower
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    container_name: watchtower
+    ports:
+      - "8880:8080"
+    environment:
+      - WATCHTOWER_HTTP_API_METRICS=true
+      - WATCHTOWER_HTTP_API_TOKEN="demo_token"
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600 # 1小时检查一次
+      - TZ=Asia/Shanghai
+    healthcheck:
+      test: ["CMD", "/watchtower", "--health-check"]
+      interval: 10m
+      timeout: 30s
+      retries: 3
+      start_period: 60s
+    networks:
+      - frontend
+      - backend
+
+  #  dnsmasq:
+  #    container_name: dnsmasq
+  #    image: jpillora/dnsmasq
+  #    restart: always
+  #    ports:
+  #      - "53:53/udp"
+  #      - "8080:8080"
+  #    volumes:
+  #      - ${CONFIG_PATH}dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf
+  #    environment:
+  #      - HTTP_USER=user
+  #      - HTTP_PASS=12345
+  #    networks:
+  #      - frontend
+  #      - backend
+
+  #  监视并重启不正常的 docker 容器。
+  #  监视并重启不正常的 docker 容器。此功能被提议包含在添加 HEALTHCHECK 时，
+  #  但没有被削减。此容器是替代容器，直到对 --exit-on-unhealthy
+  #  labels:
+  #      autoheal-app: true
+  autoheal:
+    container_name: autoheal
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal-app
+    #      AUTOHEAL_CONTAINER_LABEL: all
+    image: willfarrell/autoheal:latest
+    network_mode: none
+    restart: always
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+#    networks:
+#      - frontend
+#      - backend

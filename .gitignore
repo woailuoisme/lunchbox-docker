@@ -1,0 +1,16 @@
+/homepage/logs
+/data/
+/.env
+/logs/
+.env
+.env.local
+.env.product
+/authelia/db.sqlite3
+
+./3xui/db
+/3xui/db/x-ui.db
+.zed
+.codebuddy
+.qoder
+.idea
+.vscode

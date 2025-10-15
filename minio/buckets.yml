@@ -1,0 +1,23 @@
+# MinIO Bucket 配置
+# 定义多个 bucket 及其访问权限
+
+buckets:
+  # 午餐盒应用公共文件存储
+  - name: "lunchbox"
+    description: "午餐盒应用公共文件存储"
+    access_type: "public"
+
+  # 系统备份文件存储
+  - name: "backup"
+    description: "系统备份文件存储"
+    access_type: "private"
+
+  # 静态资源文件存储
+  - name: "asset"
+    description: "静态资源文件存储"
+    access_type: "download"
+
+# 权限说明
+# public: 公共读权限，匿名用户可下载 (对应 mc anonymous set download)
+# private: 私有权限，需要认证 (对应 mc anonymous set none)
+# download: 下载权限，匿名用户可下载 (对应 mc anonymous set download)

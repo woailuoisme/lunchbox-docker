@@ -1,0 +1,111 @@
+# Authelia 认证保护配置示例
+# 用于需要 Authelia 认证保护的应用站点
+# 使用方法: 在需要保护的站点配置中 include 此文件
+
+server {
+    listen 80;
+    server_name app.${AUTHELIA_DOMAIN:-localhost};
+    
+    # HTTP 重定向到 HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name app.${AUTHELIA_DOMAIN:-localhost};
+    
+    # SSL 证书配置
+    ssl_certificate /etc/nginx/ssl/live/${AUTHELIA_DOMAIN:-localhost}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${AUTHELIA_DOMAIN:-localhost}/privkey.pem;
+    
+    # SSL 安全配置
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    # 安全头配置
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    
+    # 日志配置
+    access_log /var/log/nginx/app_access.log;
+    error_log /var/log/nginx/app_error.log;
+    
+    # Authelia 认证配置
+    include /etc/nginx/snippets/authelia-location.conf;
+    
+    # 应用代理配置
+    location / {
+        # Authelia 认证检查
+        auth_request /authelia;
+        
+        # 认证成功后传递用户信息
+        auth_request_set $user $upstream_http_remote_user;
+        auth_request_set $groups $upstream_http_remote_groups;
+        auth_request_set $name $upstream_http_remote_name;
+        auth_request_set $email $upstream_http_remote_email;
+        
+        # 将用户信息传递给后端应用
+        proxy_set_header Remote-User $user;
+        proxy_set_header Remote-Groups $groups;
+        proxy_set_header Remote-Name $name;
+        proxy_set_header Remote-Email $email;
+        
+        # 代理到后端应用 (请根据实际情况修改)
+        proxy_pass http://your-app:port;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host $http_host;
+        
+        # 超时配置
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+    
+    # 静态资源不需要认证
+    location ~* \.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
+        proxy_pass http://your-app:port;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # 缓存配置
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header Vary Accept-Encoding;
+    }
+    
+    # API 端点可能需要特殊处理
+    location /api/ {
+        # Authelia 认证检查
+        auth_request /authelia;
+        
+        # 认证成功后传递用户信息
+        auth_request_set $user $upstream_http_remote_user;
+        auth_request_set $groups $upstream_http_remote_groups;
+        
+        # 将用户信息传递给 API
+        proxy_set_header Remote-User $user;
+        proxy_set_header Remote-Groups $groups;
+        
+        # 代理到后端 API
+        proxy_pass http://your-app:port;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # API 特殊配置
+        proxy_buffering off;
+        proxy_request_buffering off;
+    }
+}
