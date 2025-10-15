@@ -42,7 +42,6 @@ RUN mkdir -p /home/www-data/.ssh \
     && chmod 700 /home/www-data/.ssh \
     && ssh-keyscan github.com >> /home/www-data/.ssh/known_hosts \
     && ssh-keyscan gitee.com >> /home/www-data/.ssh/known_hosts \
-    && ssh-keyscan gitlab.com >> /home/www-data/.ssh/known_hosts \
     && chown www-data:www-data /home/www-data/.ssh/known_hosts \
     && chmod 644 /home/www-data/.ssh/known_hosts
 

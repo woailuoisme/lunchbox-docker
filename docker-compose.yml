@@ -12,16 +12,15 @@ services:
     container_name: certbot
     image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-certbot}-${TAG:-latest}
     environment:
-      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-cloudflare} # DNS 提供商: cloudflare 或 aliyun
-      - DOMAIN=${DOMAIN:-jso.lol} # 主域名
-      - EMAIL=${CERTBOT_EMAIL:-admin@jso.lol} # 证书通知邮箱
+      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
+      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
+      - EMAIL=${CERTBOT_EMAIL:-admin@haoxiaoguai.xyz} # 证书通知邮箱
       - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
       - TZ=Asia/Shanghai
     volumes:
       - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
       - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
-      - ./certbot/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
-      - ./certbot/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+      - ./certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
     restart: unless-stopped
     networks:
       - frontend
