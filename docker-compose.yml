@@ -10,7 +10,6 @@ services:
       context: ./certbot
       dockerfile: Dockerfile
     container_name: certbot
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-certbot}-${TAG:-latest}
     environment:
       - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
       - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
@@ -37,7 +36,6 @@ services:
         - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
         - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
     container_name: nginx
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-nginx}-${TAG:-latest}
     restart: always
     #    user: "${WWWUSER:-33}:${WWWGROUP:-33}"  # 使用环境变量配置容器用户
     volumes:
@@ -81,7 +79,6 @@ services:
         - CHANGE_SOURCE=${CHANGE_SOURCE}
         - WWWUSER=${WWWUSER:-33}
         - WWWGROUP=${WWWGROUP:-33}
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-php-8.4}-${TAG:-latest}
     container_name: php-fpm
     restart: always
     user: "${WWWUSER:-33}:${WWWGROUP:-33}" # 使用环境变量或默认值
@@ -108,7 +105,6 @@ services:
   #      - SYS_PTRACE # 允许 ptrace 调试（仅调试用）
   postgres:
     container_name: postgres
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-postgres}-${TAG:-latest}
     build:
       context: ./postgres
       args:
@@ -130,7 +126,6 @@ services:
   pgbouncer:
     build:
       context: ./pgbouncer
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-pgbouncer}-${TAG:-latest}
     container_name: pgbouncer
     restart: always
     environment:
@@ -149,7 +144,6 @@ services:
       context: ./redis
       args:
         - REDIS_VERSION=${REDIS_VERSION}
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-redis}-${TAG:-latest}
     volumes:
       - ${DATA_PATH}redis:/data
     restart: always
@@ -193,7 +187,6 @@ services:
     build:
       context: ./rabbitmq
       dockerfile: Dockerfile
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-rabbitmq}-${TAG:-latest}
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"
@@ -233,7 +226,6 @@ services:
     build:
       context: ./portainer
       dockerfile: Dockerfile
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-portainer}-${TAG:-latest}
     restart: unless-stopped
     ports:
       # HTTPS端口（推荐优先使用）
@@ -295,6 +287,16 @@ services:
       - backend
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+
+  registry:
+    container_name: registry
+    image: registry:3
+    ports:
+      - "5000:5000"
+    restart: always
+    networks:
+      - backend
+      - frontend
 
   watchtower:
     container_name: watchtower
