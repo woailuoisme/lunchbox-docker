@@ -3,11 +3,6 @@ ARG TIMEZONE=Asia/Shanghai
 FROM postgres:${POSTGRES_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
-# 设置时区
-RUN apk add --no-cache tzdata \
-    && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
-    && echo "${TIMEZONE}" > /etc/timezone \
-    && apk del tzdata
 
 # 复制优化后的配置文件
 COPY postgresql.conf /etc/postgresql/postgresql.conf

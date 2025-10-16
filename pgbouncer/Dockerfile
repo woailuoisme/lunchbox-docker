@@ -1,13 +1,11 @@
 FROM alpine:latest
 
+# 安装pgbouncer和其他必要工具
+RUN apk add --no-cache pgbouncer shadow
+
 LABEL maintainer="seaside <531773730@qq.com>"
 
 ARG TIMEZONE=Asia/Shanghai
-
-RUN apk add --no-cache tzdata pgbouncer\
-    && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
-    && echo "${TIMEZONE}" > /etc/timezone \
-    && apk del tzdata
 
 # 创建非root用户运行pgbouncer
 RUN addgroup -S pgbouncer && adduser -S pgbouncer -G pgbouncer
