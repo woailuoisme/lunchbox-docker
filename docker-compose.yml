@@ -53,8 +53,6 @@ services:
       - "45432:45432" # PostgresSQL 代理
       - "46379:46379" # Redis 代理
     depends_on:
-      authelia:
-        condition: service_started
       certbot:
         condition: service_started
       error-pages:
@@ -74,6 +72,7 @@ services:
     networks:
       - frontend
       - backend
+
   php-fpm:
     build:
       context: ./php-fpm
@@ -107,7 +106,6 @@ services:
   #      - seccomp:unconfined # 关闭 seccomp 限制（仅调试用）
   #    cap_add:
   #      - SYS_PTRACE # 允许 ptrace 调试（仅调试用）
-
   postgres:
     container_name: postgres
     image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-postgres}-${TAG:-latest}
@@ -128,6 +126,7 @@ services:
     networks:
       - backend
       - frontend
+
   pgbouncer:
     build:
       context: ./pgbouncer
@@ -230,8 +229,11 @@ services:
       - backend
 
   portainer:
-    image: portainer/portainer-ce:alpine
     container_name: portainer
+    build:
+      context: ./portainer
+      dockerfile: Dockerfile
+    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-portainer}-${TAG:-latest}
     restart: unless-stopped
     ports:
       # HTTPS端口（推荐优先使用）
@@ -243,8 +245,10 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${DATA_PATH}portainer_data:/data
+      - ./portainer/secrets:/run/secrets:ro
     environment:
       - TZ=Asia/Shanghai
+      - PORTAINER_ADMIN_PASSWORD=${PORTAINER_ADMIN_PASSWORD:-ChangeMe123!}
     networks:
       - frontend
       - backend
@@ -274,25 +278,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
-  authelia:
-    build:
-      context: ./authelia
-    container_name: authelia
-    image: ${REGISTRY:-jiaoio}/${IMAGE_NAME:-authelia}-${TAG:-latest}
-    restart: unless-stopped
-    ports:
-      - "9091:9091"
-    volumes:
-      - ${CONFIG_PATH}authelia:/config
-    environment:
-      - "TZ=${TIMEZONE}"
-      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
-    depends_on:
-      - redis
-    networks:
-      - frontend
-      - backend
-
   error-pages:
     container_name: error-pages
     image: tarampampam/error-pages
@@ -312,10 +297,10 @@ services:
       - "com.centurylinklabs.watchtower.enable=true"
 
   watchtower:
+    container_name: watchtower
     image: containrrr/watchtower
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-    container_name: watchtower
     ports:
       - "8880:8080"
     environment:
@@ -334,32 +319,11 @@ services:
       - frontend
       - backend
 
-  #  dnsmasq:
-  #    container_name: dnsmasq
-  #    image: jpillora/dnsmasq
-  #    restart: always
-  #    ports:
-  #      - "53:53/udp"
-  #      - "8080:8080"
-  #    volumes:
-  #      - ${CONFIG_PATH}dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf
-  #    environment:
-  #      - HTTP_USER=user
-  #      - HTTP_PASS=12345
-  #    networks:
-  #      - frontend
-  #      - backend
-
-  #  监视并重启不正常的 docker 容器。
-  #  监视并重启不正常的 docker 容器。此功能被提议包含在添加 HEALTHCHECK 时，
-  #  但没有被削减。此容器是替代容器，直到对 --exit-on-unhealthy
-  #  labels:
-  #      autoheal-app: true
   autoheal:
     container_name: autoheal
     environment:
-      AUTOHEAL_CONTAINER_LABEL: autoheal-app
-    #      AUTOHEAL_CONTAINER_LABEL: all
+      #      AUTOHEAL_CONTAINER_LABEL: autoheal-app
+      AUTOHEAL_CONTAINER_LABEL: all
     image: willfarrell/autoheal:latest
     network_mode: none
     restart: always

@@ -1,11 +1,12 @@
-# Makefile readme (en): <https://www.gnu.org/software/make/manual/html_node/index.html#SEC_Contents>
+# Makefile for Lunchbox Docker Environment
+# =======================================
 
 SHELL = /bin/bash
 DC_RUN_ARGS = -f docker-compose.yml
-HOST_UID=$(shell id -u)
-HOST_GID=$(shell id -g)
+HOST_UID = $(shell id -u)
+HOST_GID = $(shell id -g)
 
-# 默认配置变量
+# Default configuration variables
 REGISTRY ?= jiaoio
 IMAGE_NAME ?= php-base
 PHP_VERSION ?= 8.4
@@ -15,33 +16,45 @@ WWWGROUP ?= $(shell id -g)
 include $(PWD)/.env
 export
 
-.PHONY : help up down shell\:php-fpm stop-all ps update build restart down-up images\:list images\:clean logs\:php-fpm logs containers\:health command\:php-fpm
-.PHONY : php-build up-build php-restart php-logs compose-shell supervisor-start supervisor-status supervisor-reload nginx-reload nginx-restart nginx-check-restart remove-orphans php-recreate php-rebuild build-local build-multiarch slim-image push-image build-slim-push build-multiarch-slim clean-images show-config login-registry check-compose-files compose-validate check-tools check-php-fpm check-nginx check-postgres check-redis check-all check-containers check-all-services show-versions recreate cert check-caddy authelia-config-validate authelia-generate-password ssh-gen ssh-copy-id ssh ssh-a
-.DEFAULT_GOAL : help
+.PHONY: help
 
-# Docker Compose 管理
-up: ## Up containers
+# =============================================================================
+# HELP TARGET
+# =============================================================================
+.DEFAULT_GOAL: help
+
+help: ## Show this help message
+	@echo "Lunchbox Docker Environment Management"
+	@echo "======================================"
+	@echo ""
+	@echo "Available commands:"
+	@echo ""
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@echo ""
+
+# =============================================================================
+# DOCKER COMPOSE MANAGEMENT
+# =============================================================================
+
+up: ## Start all containers in background
 	docker compose ${DC_RUN_ARGS} up -d --remove-orphans
+
+down: ## Stop all containers
+	docker compose ${DC_RUN_ARGS} down
+
+down-with-volumes: ## Stop containers and remove volumes
+	docker compose ${DC_RUN_ARGS} down -v
+
+restart: ## Restart all containers
+	docker compose ${DC_RUN_ARGS} restart
 
 logs: ## Tail all containers logs
 	docker compose ${DC_RUN_ARGS} logs -f
 
-down: ## Stop containers
-	docker compose ${DC_RUN_ARGS} down
+logs-%: ## Tail logs for specific service
+	docker compose ${DC_RUN_ARGS} logs -f $*
 
-down\:with-volumes: ## Stop containers and remove volumes
-	docker compose ${DC_RUN_ARGS} down -v
-
-shell\:php-fpm: ## Start shell into php-fpm container
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh
-
-command\:php-fpm: ## Run a command in the php-fpm container
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c "$(command)"
-
-stop-all: ## Stop all containers
-	docker stop $(shell docker ps -a -q)
-
-ps: ## Containers status with formatted output
+ps: ## Show container status with formatted output
 	@echo "📊 Container Status:"
 	@echo "=================="
 	@docker compose ${DC_RUN_ARGS} ps --format "table {{.Name}}\t{{.Service}}\t{{.Status}}\t{{.Ports}}" | \
@@ -52,8 +65,37 @@ ps: ## Containers status with formatted output
 		{print "⚠️  " $$0} \
 	'
 
-kill-all: ## Force stop all containers (use only when all containers are unresponsive)
-	docker kill $(shell docker ps -q)
+remove-orphans: ## Remove orphaned containers
+	docker compose ${DC_RUN_ARGS} down --remove-orphans
+
+stop-all: ## Stop all running containers (forceful)
+	docker stop $$(docker ps -a -q)
+
+kill-all: ## Force kill all containers (emergency only)
+	docker kill $$(docker ps -q)
+
+# =============================================================================
+# CONTAINER SHELL ACCESS
+# =============================================================================
+
+shell-php-fpm: ## Start shell into php-fpm container
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh
+
+shell-nginx: ## Start shell into nginx container
+	docker compose ${DC_RUN_ARGS} exec nginx sh
+
+shell-postgres: ## Start shell into postgres container
+	docker compose ${DC_RUN_ARGS} exec postgres sh
+
+shell-redis: ## Start shell into redis container
+	docker compose ${DC_RUN_ARGS} exec redis sh
+
+command-php-fpm: ## Run a command in the php-fpm container
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c "$(command)"
+
+# =============================================================================
+# SUPERVISOR MANAGEMENT
+# =============================================================================
 
 supervisor-start: ## Start supervisord in running container
 	@echo "🚀 Starting supervisord..."
@@ -66,6 +108,10 @@ supervisor-status: ## Check supervisord status
 supervisor-reload: ## Reload configuration and restart all processes
 	@echo "🔄 Reloading supervisord configuration and restarting all processes..."
 	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl reload'
+
+# =============================================================================
+# NGINX MANAGEMENT
+# =============================================================================
 
 nginx-check: ## Check Nginx configuration syntax
 	@echo "🔍 Checking Nginx configuration syntax..."
@@ -89,3 +135,164 @@ nginx-check-restart: ## Check Nginx configuration and restart if valid
 		echo "❌ Nginx configuration check failed, please check configuration files"; \
 		exit 1; \
 	fi
+
+# =============================================================================
+# SERVICE HEALTH CHECKS
+# =============================================================================
+
+check-php-fpm: ## Check PHP-FPM service health
+	@echo "🔍 Checking PHP-FPM service..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm php-fpm -t
+
+check-nginx: ## Check Nginx service health
+	@echo "🔍 Checking Nginx service..."
+	docker compose ${DC_RUN_ARGS} exec nginx nginx -t
+
+check-postgres: ## Check PostgreSQL service health
+	@echo "🔍 Checking PostgreSQL service..."
+	docker compose ${DC_RUN_ARGS} exec postgres pg_isready
+
+check-redis: ## Check Redis service health
+	@echo "🔍 Checking Redis service..."
+	docker compose ${DC_RUN_ARGS} exec redis redis-cli ping
+
+check-all: ## Check all services health
+	@echo "🔍 Running comprehensive service health checks..."
+	@$(MAKE) check-php-fpm
+	@$(MAKE) check-nginx
+	@$(MAKE) check-postgres
+	@$(MAKE) check-redis
+	@echo "✅ All service health checks completed"
+
+check-containers: ## Check container status
+	@echo "🔍 Checking container status..."
+	docker compose ${DC_RUN_ARGS} ps
+
+# =============================================================================
+# BUILD AND DEPLOYMENT
+# =============================================================================
+
+build: ## Build all services
+	docker compose ${DC_RUN_ARGS} build
+
+build-%: ## Build specific service
+	docker compose ${DC_RUN_ARGS} build $*
+
+rebuild: ## Rebuild all services (force)
+	docker compose ${DC_RUN_ARGS} build --no-cache
+
+rebuild-%: ## Rebuild specific service (force)
+	docker compose ${DC_RUN_ARGS} build --no-cache $*
+
+pull: ## Pull latest images
+	docker compose ${DC_RUN_ARGS} pull
+
+# =============================================================================
+# DEVELOPMENT UTILITIES
+# =============================================================================
+
+compose-validate: ## Validate docker-compose configuration
+	docker compose ${DC_RUN_ARGS} config
+
+show-versions: ## Show service versions
+	@echo "📋 Service Versions:"
+	@echo "==================="
+	@echo "PHP-FPM: $$(docker compose ${DC_RUN_ARGS} exec php-fpm php -v | head -1)"
+	@echo "Nginx: $$(docker compose ${DC_RUN_ARGS} exec nginx nginx -v 2>&1)"
+	@echo "PostgreSQL: $$(docker compose ${DC_RUN_ARGS} exec postgres psql --version)"
+	@echo "Redis: $$(docker compose ${DC_RUN_ARGS} exec redis redis-server --version | head -1)"
+
+clean-images: ## Remove unused Docker images
+	docker image prune -f
+
+clean-volumes: ## Remove unused Docker volumes
+	docker volume prune -f
+
+clean-all: ## Remove all unused Docker resources
+	docker system prune -f
+
+# =============================================================================
+# SECURITY AND CERTIFICATES
+# =============================================================================
+
+cert: ## Check SSL certificates
+	@echo "🔐 Checking SSL certificates..."
+	@docker compose ${DC_RUN_ARGS} exec nginx openssl x509 -in /etc/nginx/ssl/live/haoxiaoguai.xyz/fullchain.pem -text -noout | grep -E "(Subject:|Not Before:|Not After :)"
+
+check-caddy: ## Check Caddy service
+	@echo "🔍 Checking Caddy service..."
+	@docker compose ${DC_RUN_ARGS} exec caddy caddy validate --config /etc/caddy/Caddyfile
+
+authelia-config-validate: ## Validate Authelia configuration
+	@echo "🔍 Validating Authelia configuration..."
+	@docker compose ${DC_RUN_ARGS} exec authelia authelia validate-config
+
+authelia-generate-password: ## Generate Authelia password hash
+	@echo "🔑 Generating Authelia password hash..."
+	@docker compose ${DC_RUN_ARGS} exec authelia authelia crypto hash generate argon2 --password '$(password)'
+
+# =============================================================================
+# SSH MANAGEMENT
+# =============================================================================
+
+ssh-gen: ## Generate SSH key pair
+	@echo "🔑 Generating SSH key pair..."
+	ssh-keygen -t rsa -b 4096 -C "lunchbox@haoxiaoguai.xyz" -f ./ssh/id_rsa -N ""
+
+ssh-copy-id: ## Copy SSH public key to server
+	@echo "📤 Copying SSH public key to server..."
+	ssh-copy-id -i ./ssh/id_rsa.pub $(user)@$(host)
+
+ssh: ## SSH into server
+	@echo "🔗 Connecting to server via SSH..."
+	ssh -i ./ssh/id_rsa $(user)@$(host)
+
+ssh-a: ## SSH with agent forwarding
+	@echo "🔗 Connecting to server with agent forwarding..."
+	ssh -A -i ./ssh/id_rsa $(user)@$(host)
+
+# =============================================================================
+# QUICK ACTIONS
+# =============================================================================
+
+dev: ## Start development environment
+	@$(MAKE) up
+	@$(MAKE) check-all
+
+reset: ## Reset development environment
+	@$(MAKE) down
+	@$(MAKE) up
+
+update: ## Update all services
+	@$(MAKE) pull
+	@$(MAKE) down
+	@$(MAKE) up
+
+status: ## Show comprehensive status
+	@$(MAKE) ps
+	@$(MAKE) check-all
+
+# =============================================================================
+# MAINTENANCE
+# =============================================================================
+
+backup-db: ## Backup PostgreSQL database
+	@echo "💾 Backing up PostgreSQL database..."
+	@docker compose ${DC_RUN_ARGS} exec postgres pg_dump -U $(POSTGRES_USER) $(POSTGRES_DB) > backup/$(shell date +%Y%m%d_%H%M%S)_backup.sql
+	@echo "✅ Backup completed: backup/$(shell date +%Y%m%d_%H%M%S)_backup.sql"
+
+restore-db: ## Restore PostgreSQL database from backup
+	@echo "🔄 Restoring PostgreSQL database from $(file)..."
+	@docker compose ${DC_RUN_ARGS} exec -T postgres psql -U $(POSTGRES_USER) $(POSTGRES_DB) < $(file)
+	@echo "✅ Database restored from $(file)"
+
+view-logs: ## View all service logs (one-time)
+	docker compose ${DC_RUN_ARGS} logs
+
+clean-logs: ## Clean container logs
+	@echo "🧹 Cleaning container logs..."
+	@find ./logs -name "*.log" -type f -delete
+	@echo "✅ Logs cleaned"
+
+portainer-reset-password:
+	docker run --rm -v ./data/portainer_data:/data portainer/helper-reset-password
