@@ -272,7 +272,7 @@ services:
 
   error-pages:
     container_name: error-pages
-    image: tarampampam/error-pages
+    image: tarampampam/error-pages:3.7
     restart: unless-stopped
     environment:
       - "TEMPLATE_NAME=app-down"
