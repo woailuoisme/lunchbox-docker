@@ -65,8 +65,12 @@ services:
         condition: service_started
       redis:
         condition: service_healthy
+      pgbouncer:
+        condition: service_healthy
       postgres:
         condition: service_healthy
+      registry:
+        condition: service_started
     networks:
       - frontend
       - backend
