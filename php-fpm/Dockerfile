@@ -1,6 +1,7 @@
 # PHP-FPM 服务镜像 - 基于 php-base 镜像构建
 #FROM jiaoio/php-base:latest
-FROM quay.io/jiaoio/php-base:8.4-latest
+#FROM quay.io/jiaoio/php-base:8.4-latest
+FROM ccr.ccs.tencentyun.com/jiaoio/php-base:8.4-latest
 
 # 动态用户ID支持
 ARG WWWUSER=33

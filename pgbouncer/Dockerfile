@@ -1,5 +1,12 @@
 FROM alpine:latest
 
+ARG CHANGE_SOURCE=false
+
+# 配置阿里云镜像源
+RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
+    fi
+
 # 安装pgbouncer和其他必要工具
 RUN apk add --no-cache pgbouncer shadow
 

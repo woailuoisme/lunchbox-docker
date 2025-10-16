@@ -126,6 +126,8 @@ services:
   pgbouncer:
     build:
       context: ./pgbouncer
+      args:
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
     container_name: pgbouncer
     restart: always
     environment:
