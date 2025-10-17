@@ -3,6 +3,8 @@
 
 SHELL = /bin/bash
 DC_RUN_ARGS = -f docker-compose.yml
+DC_SUPERVISOR_PATH = /usr/local/etc/supervisord.conf
+DC_SUPERVISOR_PATH = 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options"'
 HOST_UID = $(shell id -u)
 HOST_GID = $(shell id -g)
 
@@ -97,17 +99,57 @@ command-php-fpm: ## Run a command in the php-fpm container
 # SUPERVISOR MANAGEMENT
 # =============================================================================
 
-supervisor-start: ## Start supervisord in running container
-	@echo "🚀 Starting supervisord..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm supervisord -c /etc/supervisor/conf.d/supervisord.conf
+#supervisor-start: ## Start supervisord in running container
+#	@echo "🚀 Starting supervisord..."
+#	docker compose ${DC_RUN_ARGS} exec php-fpm supervisord -c /usr/local/etc/supervisord.conf
+
+supervisor-start: ## Start supervisord in background
+	@echo "🚀 Starting supervisord in background..."
+	docker compose ${DC_RUN_ARGS} exec -d php-fpm supervisord -c /usr/local/etc/supervisord.conf
 
 supervisor-status: ## Check supervisord status
 	@echo "📊 Checking supervisord status..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl status'
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf status'
 
 supervisor-reload: ## Reload configuration and restart all processes
 	@echo "🔄 Reloading supervisord configuration and restarting all processes..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl reload'
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf reload'
+
+supervisor-down: ## Shutdown supervisord and all managed processes
+	@echo "🛑 Shutting down supervisord and all managed processes..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf shutdown'
+
+supervisor-start-process: ## Start specific supervisor process
+	@echo "🚀 Starting supervisor process: $(process)..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf start $(process)'
+
+supervisor-stop-process: ## Stop specific supervisor process
+	@echo "🛑 Stopping supervisor process: $(process)..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf stop $(process)'
+
+supervisor-restart-process: ## Restart specific supervisor process
+	@echo "🔄 Restarting supervisor process: $(process)..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf restart $(process)'
+
+supervisor-tail-logs: ## Tail logs for specific process
+	@echo "📋 Tailing logs for process: $(process)..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf tail -f $(process)'
+
+supervisor-clear-logs: ## Clear logs for specific process
+	@echo "🧹 Clearing logs for process: $(process)..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf clear $(process)'
+
+supervisor-reread: ## Reread configuration without restarting
+	@echo "📖 Rereading supervisor configuration..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf reread'
+
+supervisor-update: ## Update configuration (restart changed processes only)
+	@echo "🔄 Updating supervisor configuration..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf update'
+
+supervisor-version: ## Show supervisor version
+	@echo "📋 Checking supervisor version..."
+	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf version'
 
 # =============================================================================
 # NGINX MANAGEMENT
@@ -199,7 +241,7 @@ show-versions: ## Show service versions
 	@echo "==================="
 	@echo "PHP-FPM: $$(docker compose ${DC_RUN_ARGS} exec php-fpm php -v | head -1)"
 	@echo "Nginx: $$(docker compose ${DC_RUN_ARGS} exec nginx nginx -v 2>&1)"
-	@echo "PostgreSQL: $$(docker compose ${DC_RUN_ARGS} exec postgres psql --version)"
+	@echo "PostgresSQL: $$(docker compose ${DC_RUN_ARGS} exec postgres psql --version)"
 	@echo "Redis: $$(docker compose ${DC_RUN_ARGS} exec redis redis-server --version | head -1)"
 
 clean-images: ## Remove unused Docker images
@@ -276,13 +318,13 @@ status: ## Show comprehensive status
 # MAINTENANCE
 # =============================================================================
 
-backup-db: ## Backup PostgreSQL database
+backup-db: ## Backup PostgresSQL database
 	@echo "💾 Backing up PostgreSQL database..."
 	@docker compose ${DC_RUN_ARGS} exec postgres pg_dump -U $(POSTGRES_USER) $(POSTGRES_DB) > backup/$(shell date +%Y%m%d_%H%M%S)_backup.sql
 	@echo "✅ Backup completed: backup/$(shell date +%Y%m%d_%H%M%S)_backup.sql"
 
-restore-db: ## Restore PostgreSQL database from backup
-	@echo "🔄 Restoring PostgreSQL database from $(file)..."
+restore-db: ## Restore PostgresSQL database from backup
+	@echo "🔄 Restoring PostgresSQL database from $(file)..."
 	@docker compose ${DC_RUN_ARGS} exec -T postgres psql -U $(POSTGRES_USER) $(POSTGRES_DB) < $(file)
 	@echo "✅ Database restored from $(file)"
 
@@ -296,3 +338,6 @@ clean-logs: ## Clean container logs
 
 portainer-reset-password:
 	docker run --rm -v ./data/portainer_data:/data portainer/helper-reset-password
+
+dozzle-pwd:
+	docker run --rm amir20/dozzle generate Admin --name Admin --email me@email.net --password admin_secret

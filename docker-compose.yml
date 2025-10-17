@@ -263,6 +263,11 @@ services:
     ports:
       - "8180:8080"
     restart: unless-stopped
+#    environment:
+#      - DOZZLE_AUTH_PROVIDER=simple
+#    secrets:
+#        - source: users
+#          target: /data/users.yml
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 3s
@@ -331,7 +336,7 @@ services:
     container_name: autoheal
     environment:
       #      AUTOHEAL_CONTAINER_LABEL: autoheal-app
-      AUTOHEAL_CONTAINER_LABEL: all
+      - AUTOHEAL_CONTAINER_LABEL=all
     image: willfarrell/autoheal:latest
     network_mode: none
     restart: always
@@ -341,3 +346,8 @@ services:
 #    networks:
 #      - frontend
 #      - backend
+
+
+#secrets:
+#  users:
+#    file: users.yml
