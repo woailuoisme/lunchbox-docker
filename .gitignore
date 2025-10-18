@@ -15,5 +15,5 @@
 .idea
 .vscode
 
-./cloudflare.ini
-./aliyun.ini
+cloudflare.ini
+aliyun.ini
