@@ -17,3 +17,6 @@
 
 cloudflare.ini
 aliyun.ini
+
+./certbot/conf/aliyun.ini
+./certbot/conf/cloudflare.ini
