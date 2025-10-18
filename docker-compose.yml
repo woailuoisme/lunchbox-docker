@@ -19,7 +19,8 @@ services:
     volumes:
       - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
       - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
-      - ./certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+      - ./aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+#      - ./cloudflare.ini:/etc/letsencrypt/aliyun.ini:ro
     restart: unless-stopped
     networks:
       - frontend
@@ -263,11 +264,11 @@ services:
     ports:
       - "8180:8080"
     restart: unless-stopped
-#    environment:
-#      - DOZZLE_AUTH_PROVIDER=simple
-#    secrets:
-#        - source: users
-#          target: /data/users.yml
+    #    environment:
+    #      - DOZZLE_AUTH_PROVIDER=simple
+    #    secrets:
+    #        - source: users
+    #          target: /data/users.yml
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 3s
@@ -302,6 +303,8 @@ services:
   registry:
     container_name: registry
     image: registry:3
+    environment:
+      - OTEL_SDK_DISABLED=true
     ports:
       - "5000:5000"
     restart: always
@@ -346,7 +349,6 @@ services:
 #    networks:
 #      - frontend
 #      - backend
-
 
 #secrets:
 #  users:
