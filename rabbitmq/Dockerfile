@@ -1,5 +1,6 @@
 # RabbitMQ Dockerfile with delayed message exchange plugin
 FROM rabbitmq:4.1-management-alpine
+LABEL maintainer="seaside <531773730@qq.com>"
 
 # 下载并安装延迟消息交换插件（4.1.0版本）
 RUN wget -O /opt/rabbitmq/plugins/rabbitmq_delayed_message_exchange-4.1.0.ez \

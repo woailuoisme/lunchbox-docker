@@ -15,9 +15,9 @@ env:
   REDHAT_REGISTRY: quay.io
 
   # Image names
-  DOCKERHUB_NAMESPACE: ${{ secrets.DOCKERHUB_USERNAME }}
-  TENCENT_NAMESPACE: ${{ secrets.TENCENT_NAMESPACE }}
-  REDHAT_NAMESPACE: ${{ secrets.REDHAT_NAMESPACE }}
+  DOCKERHUB_NAMESPACE: jiaoio
+  TENCENT_NAMESPACE: jiaoio
+  REDHAT_NAMESPACE: jiaoio
 
 jobs:
   build-and-push:
@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         service:
-          - certbot
+#          - certbot
           - nginx
           - php-fpm
           - postgres
@@ -35,8 +35,8 @@ jobs:
           - portainer
           - minio
         include:
-          - service: certbot
-            context: ./certbot
+#          - service: certbot
+#            context: ./certbot
           - service: nginx
             context: ./nginx
             dockerfile: Dockerfile
@@ -132,7 +132,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: |
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
+#            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/nginx:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/php-fpm:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgres:latest

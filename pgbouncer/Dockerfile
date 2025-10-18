@@ -1,4 +1,5 @@
 FROM alpine:latest
+LABEL maintainer="seaside <531773730@qq.com>"
 
 ARG CHANGE_SOURCE=false
 
@@ -10,7 +11,6 @@ RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
 # 安装pgbouncer和其他必要工具
 RUN apk add --no-cache pgbouncer shadow
 
-LABEL maintainer="seaside <531773730@qq.com>"
 
 ARG TIMEZONE=Asia/Shanghai
 

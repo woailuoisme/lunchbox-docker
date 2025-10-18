@@ -1,8 +1,8 @@
+FROM postgres:${POSTGRES_VERSION}
+LABEL maintainer="seaside <531773730@qq.com>"
+
 ARG POSTGRES_VERSION=17.6-alpine
 ARG TIMEZONE=Asia/Shanghai
-FROM postgres:${POSTGRES_VERSION}
-
-LABEL maintainer="seaside <531773730@qq.com>"
 
 # 复制优化后的配置文件
 COPY postgresql.conf /etc/postgresql/postgresql.conf

@@ -1,7 +1,6 @@
 FROM portainer/portainer-ce:alpine
 
 LABEL maintainer="seaside <531773730@qq.com>"
-LABEL description="Portainer CE with enhanced configuration support"
 
 # 创建用于存储密码文件的目录
 RUN mkdir -p /run/secrets

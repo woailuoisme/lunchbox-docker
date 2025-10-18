@@ -2,12 +2,12 @@
 #FROM jiaoio/php-base:latest
 #FROM quay.io/jiaoio/php-base:8.4-latest
 FROM ccr.ccs.tencentyun.com/jiaoio/php-base:8.4-latest
+LABEL maintainer="seaside <531773730@qq.com>"
 
 # 动态用户ID支持
 ARG WWWUSER=33
 ARG WWWGROUP=33
 
-LABEL maintainer="seaside <531773730@qq.com>"
 LABEL service="php-fpm"
 
 #RUN pecl install xdebug-3.2.1 \
