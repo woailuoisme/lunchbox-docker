@@ -1,5 +1,4 @@
 FROM portainer/portainer-ce:alpine
-
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 创建用于存储密码文件的目录

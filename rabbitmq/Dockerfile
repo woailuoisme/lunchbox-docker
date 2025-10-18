@@ -1,4 +1,3 @@
-# RabbitMQ Dockerfile with delayed message exchange plugin
 FROM rabbitmq:4.1-management-alpine
 LABEL maintainer="seaside <531773730@qq.com>"
 
