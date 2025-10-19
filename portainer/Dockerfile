@@ -8,11 +8,9 @@ RUN mkdir -p /run/secrets
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# 设置健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:9000/api/system/status || exit 1
 
-# 设置入口点
 ENTRYPOINT ["/entrypoint.sh"]
 
 # 默认命令

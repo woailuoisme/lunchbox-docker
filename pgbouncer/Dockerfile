@@ -3,7 +3,6 @@ LABEL maintainer="seaside <531773730@qq.com>"
 
 ARG CHANGE_SOURCE=false
 
-# 配置阿里云镜像源
 RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi

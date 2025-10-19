@@ -168,6 +168,8 @@ services:
   meilisearch:
     container_name: meilisearch
     image: "getmeili/meilisearch:v1.18.0"
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
     ports:
       - "${SEARCH_PORT:-7700}:7700"
     volumes:

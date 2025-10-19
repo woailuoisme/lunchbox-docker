@@ -13,10 +13,8 @@ RUN chmod +x /usr/local/bin/init_minio.sh
 ENV MINIO_ENDPOINT=http://localhost:9000
 ENV CONFIG_FILE=/etc/minio/buckets.yml
 
-# 暴露端口
 EXPOSE 9000 9001
 
-# 健康检查 - 检查 MinIO 服务是否正常运行
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:9000/minio/health/live || exit 1
 
