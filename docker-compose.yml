@@ -89,7 +89,7 @@ services:
     user: "${WWWUSER:-33}:${WWWGROUP:-33}" # 使用环境变量或默认值
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ./php-fpm/ssh:/home/www-data/.ssh:ro
+      - ./ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
     extra_hosts:
@@ -257,6 +257,17 @@ services:
       - watchtower
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
+
+#  agent:
+#    container_name: portainer_agent
+#    image: portainer/agent:2.35.0-alpine
+#    ports:
+#      - "9301:9001"
+#    restart: always
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#      - /var/lib/docker/volumes:/var/lib/docker/volumes
+#      - /:/host
 
   dozzle:
     container_name: dozzle
