@@ -1,7 +1,7 @@
+ARG POSTGRES_VERSION=17.6-alpine
 FROM postgres:${POSTGRES_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
-ARG POSTGRES_VERSION=17.6-alpine
 ARG TIMEZONE=Asia/Shanghai
 
 # 复制优化后的配置文件

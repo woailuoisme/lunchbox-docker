@@ -128,25 +128,32 @@ services:
       - backend
       - frontend
 
-  #  postgis:
-  #    container_name: postgis
-  #    build:
-  #      context: ./postgis
-  #      args:
-  #        - POSTGRES_VERSION=${POSTGRES_VERSION}
-  #    volumes:
-  #      - ${DATA_PATH}postgis:/var/lib/postgresql/data
-  #      - ${CONFIG_PATH}postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-  #    ports:
-  #      - "${POSTGIS_PORT}:5432"
-  #    restart: always
-  #    environment:
-  #      - POSTGRES_USER=${POSTGIS_USER}
-  #      - POSTGRES_PASSWORD=${POSTGIS_PASSWORD}
-  #      - POSTGRES_DB=${POSTGIS_DB}
-  #    networks:
-  #      - backend
-  #      - frontend
+  postgis:
+    image: postgis/postgis:17-3.5-alpine # 推荐指定具体版本（PostgreSQL 17 + PostGIS 3.5）
+    platform: linux/amd64 # 兼容 Apple M 芯片（arm64），amd64 架构通用
+    container_name: postgis
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C" # 初始化编码设置
+    ports:
+      - "15432:5432"
+    volumes:
+      - ${DATA_PATH}postgis:/var/lib/postgresql/data
+      - ${CONFIG_PATH}postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    #      - ${CONFIG_PATH}postgis/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+    #      - ${CONFIG_PATH}postgis/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+    healthcheck:
+      # 健康检查：确保数据库服务可用
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend
+      - frontend
 
   pgbouncer:
     build:
