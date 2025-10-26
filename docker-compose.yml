@@ -19,8 +19,8 @@ services:
     volumes:
       - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
       - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
-      - ./aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
-#      - ./cloudflare.ini:/etc/letsencrypt/aliyun.ini:ro
+      - ${CONFIG_PATH}certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+    #      - ${CONFIG_PATH}certbot/conf/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
     restart: unless-stopped
     networks:
       - frontend
@@ -89,7 +89,7 @@ services:
     user: "${WWWUSER:-33}:${WWWGROUP:-33}" # 使用环境变量或默认值
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ./ssh:/home/www-data/.ssh:ro
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
     extra_hosts:
@@ -127,6 +127,26 @@ services:
     networks:
       - backend
       - frontend
+
+  #  postgis:
+  #    container_name: postgis
+  #    build:
+  #      context: ./postgis
+  #      args:
+  #        - POSTGRES_VERSION=${POSTGRES_VERSION}
+  #    volumes:
+  #      - ${DATA_PATH}postgis:/var/lib/postgresql/data
+  #      - ${CONFIG_PATH}postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+  #    ports:
+  #      - "${POSTGIS_PORT}:5432"
+  #    restart: always
+  #    environment:
+  #      - POSTGRES_USER=${POSTGIS_USER}
+  #      - POSTGRES_PASSWORD=${POSTGIS_PASSWORD}
+  #      - POSTGRES_DB=${POSTGIS_DB}
+  #    networks:
+  #      - backend
+  #      - frontend
 
   pgbouncer:
     build:
@@ -258,16 +278,16 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
-#  agent:
-#    container_name: portainer_agent
-#    image: portainer/agent:2.35.0-alpine
-#    ports:
-#      - "9301:9001"
-#    restart: always
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
-#      - /var/lib/docker/volumes:/var/lib/docker/volumes
-#      - /:/host
+  #  agent:
+  #    container_name: portainer_agent
+  #    image: portainer/agent:2.35.0-alpine
+  #    ports:
+  #      - "9301:9001"
+  #    restart: always
+  #    volumes:
+  #      - /var/run/docker.sock:/var/run/docker.sock
+  #      - /var/lib/docker/volumes:/var/lib/docker/volumes
+  #      - /:/host
 
   dozzle:
     container_name: dozzle

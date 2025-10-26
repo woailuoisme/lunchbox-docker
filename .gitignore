@@ -22,3 +22,4 @@ aliyun.ini
 ./certbot/conf/cloudflare.ini
 
 certbot/conf/renewal/
+ssh/
