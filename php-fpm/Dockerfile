@@ -47,10 +47,10 @@ RUN mkdir -p /home/www-data/.ssh \
     && chown www-data:www-data /home/www-data/.ssh/known_hosts \
     && chmod 644 /home/www-data/.ssh/known_hosts
 
-EXPOSE 9000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD sh -c 'SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong'
 
 WORKDIR /var/www
-
+# php-fpm  laravel-reverb laravel-octande-frankenphp
+EXPOSE 9000 8080 8001
 ENTRYPOINT ["/usr/local/bin/start-container.sh"]

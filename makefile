@@ -109,47 +109,47 @@ supervisor-start: ## Start supervisord in background
 
 supervisor-status: ## Check supervisord status
 	@echo "📊 Checking supervisord status..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf status'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 status'
 
 supervisor-reload: ## Reload configuration and restart all processes
 	@echo "🔄 Reloading supervisord configuration and restarting all processes..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf reload'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 reload'
 
 supervisor-down: ## Shutdown supervisord and all managed processes
 	@echo "🛑 Shutting down supervisord and all managed processes..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf shutdown'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 shutdown'
 
 supervisor-start-process: ## Start specific supervisor process
 	@echo "🚀 Starting supervisor process: $(process)..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf start $(process)'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 start $(process)'
 
 supervisor-stop-process: ## Stop specific supervisor process
 	@echo "🛑 Stopping supervisor process: $(process)..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf stop $(process)'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 stop $(process)'
 
 supervisor-restart-process: ## Restart specific supervisor process
 	@echo "🔄 Restarting supervisor process: $(process)..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf restart $(process)'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 restart $(process)'
 
 supervisor-tail-logs: ## Tail logs for specific process
 	@echo "📋 Tailing logs for process: $(process)..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf tail -f $(process)'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 tail -f $(process)'
 
 supervisor-clear-logs: ## Clear logs for specific process
 	@echo "🧹 Clearing logs for process: $(process)..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf clear $(process)'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 clear $(process)'
 
 supervisor-reread: ## Reread configuration without restarting
 	@echo "📖 Rereading supervisor configuration..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf reread'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 reread'
 
 supervisor-update: ## Update configuration (restart changed processes only)
 	@echo "🔄 Updating supervisor configuration..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf update'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 update'
 
 supervisor-version: ## Show supervisor version
 	@echo "📋 Checking supervisor version..."
-	docker compose ${DC_RUN_ARGS} exec php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf version'
+	docker compose ${DC_RUN_ARGS} exec -T php-fpm sh -c 'export PYTHONWARNINGS="ignore::UserWarning:supervisor.options" && supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 version'
 
 # =============================================================================
 # NGINX MANAGEMENT
