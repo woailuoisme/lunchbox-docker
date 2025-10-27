@@ -397,8 +397,6 @@ services:
     container_name: registry
     image: registry:3
     restart: always
-    environment:
-      - OTEL_SDK_DISABLED=true
     ports:
       - "5000:5000"
     networks:
