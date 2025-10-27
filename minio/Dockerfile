@@ -1,4 +1,4 @@
-FROM minio/minio
+FROM quay.io/minio/minio
 LABEL maintainer="seaside <seaside@qq.com>"
 
 CMD ["minio", "server", "/data", "--console-address", ":9001"]
