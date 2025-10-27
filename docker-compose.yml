@@ -82,7 +82,6 @@ services:
         - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
     container_name: nginx
     restart: always
-    #    user: "${WWWUSER:-33}:${WWWGROUP:-33}"  # 使用环境变量配置容器用户
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
@@ -103,11 +102,11 @@ services:
       php-fpm:
         condition: service_healthy
       minio:
-        condition: service_started
+        condition: service_healthy
       meilisearch:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
+        condition: service_healthy
       redis:
         condition: service_healthy
       pgbouncer:
@@ -115,7 +114,7 @@ services:
       postgres:
         condition: service_healthy
       registry:
-        condition: service_started
+        condition: service_healthy
     networks:
       - frontend
       - backend
@@ -401,11 +400,28 @@ services:
     ports:
       - "5000:5000"
     environment:
-      # 禁用追踪
+      - REGISTRY_HTTP_SECRET=lMNVjf20pKn86n8j7pUF1ijWtFDJ1BInPgEh8GjxyFA=
+      # 完全禁用OpenTelemetry追踪和指标
       - OTEL_SDK_DISABLED=true
       - OTEL_TRACES_EXPORTER=none
       - OTEL_METRICS_EXPORTER=none
-      - REGISTRY_HTTP_SECRET=lMNVjf20pKn86n8j7pUF1ijWtFDJ1BInPgEh8GjxyFA=
+      - OTEL_LOGS_EXPORTER=none
+      # 设置日志级别为info，避免debug日志
+      - REGISTRY_LOG_LEVEL=info
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:5000/v2/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - backend
       - frontend
