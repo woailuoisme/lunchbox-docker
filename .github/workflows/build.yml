@@ -25,7 +25,7 @@ jobs:
     strategy:
       matrix:
         service:
-#          - certbot
+          - certbot
           - nginx
           - php-fpm
           - postgres
@@ -35,8 +35,8 @@ jobs:
           - portainer
           - minio
         include:
-#          - service: certbot
-#            context: ./certbot
+          - service: certbot
+            context: ./certbot
           - service: nginx
             context: ./nginx
             dockerfile: Dockerfile
@@ -132,7 +132,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: |
-#            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/nginx:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/php-fpm:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgres:latest

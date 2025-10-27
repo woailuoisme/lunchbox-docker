@@ -43,9 +43,9 @@ services:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
       - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-      - ./nginx/snippets/:/etc/nginx/snippets/
-      - ./certbot/conf:/etc/nginx/ssl
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
+      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
     ports:
       - "${NGINX_HOST_HTTP_PORT}:80"
       - "${NGINX_HOST_HTTPS_PORT}:443"
@@ -109,17 +109,17 @@ services:
   #    cap_add:
   #      - SYS_PTRACE # 允许 ptrace 调试（仅调试用）
   postgres:
-    container_name: postgres
     build:
       context: ./postgres
       args:
         - POSTGRES_VERSION=${POSTGRES_VERSION}
+    container_name: postgres
+    restart: always
     volumes:
       - ${DATA_PATH}postgres:/var/lib/postgresql/data
       - ${CONFIG_PATH}postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     ports:
       - "${POSTGRES_PORT}:5432"
-    restart: always
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -146,7 +146,6 @@ services:
     #      - ${CONFIG_PATH}postgis/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
     #      - ${CONFIG_PATH}postgis/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
     healthcheck:
-      # 健康检查：确保数据库服务可用
       test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
@@ -192,9 +191,21 @@ services:
       - backend
       - frontend
 
+#  plane-redis:
+#    image: valkey/valkey:7.2.11-alpine
+#    restart: unless-stopped
+#    volumes:
+#      - redisdata:/data
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - backend
+#      - frontend
+
   meilisearch:
     container_name: meilisearch
     image: "getmeili/meilisearch:v1.18.0"
+    restart: always
     environment:
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
     ports:
@@ -219,10 +230,11 @@ services:
       start_period: 60s
 
   rabbitmq:
-    container_name: rabbitmq
     build:
       context: ./rabbitmq
       dockerfile: Dockerfile
+    container_name: rabbitmq
+    restart: always
     ports:
       - "${RABBITMQ_PORT:-5672}:5672"
       - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"
@@ -234,13 +246,13 @@ services:
       - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
       #      - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
       - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
-    restart: unless-stopped
     networks:
       - backend
 
   minio:
     container_name: minio
     image: minio/minio
+    restart: always
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
@@ -299,11 +311,11 @@ services:
   dozzle:
     container_name: dozzle
     image: amir20/dozzle:latest
+    restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8180:8080"
-    restart: unless-stopped
     #    environment:
     #      - DOZZLE_AUTH_PROVIDER=simple
     #    secrets:
@@ -343,11 +355,11 @@ services:
   registry:
     container_name: registry
     image: registry:3
+    restart: always
     environment:
       - OTEL_SDK_DISABLED=true
     ports:
       - "5000:5000"
-    restart: always
     networks:
       - backend
       - frontend
@@ -355,6 +367,7 @@ services:
   watchtower:
     container_name: watchtower
     image: containrrr/watchtower
+    restart: always
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
     ports:
@@ -377,12 +390,12 @@ services:
 
   autoheal:
     container_name: autoheal
+    image: willfarrell/autoheal:latest
+    restart: always
     environment:
       #      AUTOHEAL_CONTAINER_LABEL: autoheal-app
       - AUTOHEAL_CONTAINER_LABEL=all
-    image: willfarrell/autoheal:latest
     network_mode: none
-    restart: always
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
