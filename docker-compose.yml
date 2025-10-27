@@ -5,6 +5,51 @@ networks:
     name: backend
 
 services:
+
+#  authelia:
+#    build:
+#      context: ./authelia
+#    container_name: authelia
+#    restart: unless-stopped
+#    ports:
+#      - "9091:9091"
+#    volumes:
+#      - ${CONFIG_PATH}authelia:/config
+#    environment:
+#      - "TZ=${TIMEZONE}"
+#      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+#    depends_on:
+#      - redis
+#    networks:
+#      - frontend
+#      - backend
+#
+#  traefik:
+#    container_name: traefik
+#    image: traefik:3.5.3
+#    restart: always
+#    environment:
+#      - TZ=${TIMEZONE}
+#      - DOMAIN=${SITE_ADDRESS}
+#    ports:
+##        - "80:80"
+##        - "443:443"
+##        - "8080:8080"
+#      - "8082:8082"
+##      - "3306:3306"
+##      - "5432:5432"
+##      - "6379:6379"
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      - ${CONFIG_PATH}traefik/config:/config
+#      - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
+#      - ${LOG_PATH}traefik:/traefik/logs
+#    networks:
+#      - frontend
+##    depends_on: ['errorPage','authelia']
+#    depends_on: ['errorPage']
+
   certbot:
     build:
       context: ./certbot
@@ -128,31 +173,31 @@ services:
       - backend
       - frontend
 
-  postgis:
-    image: postgis/postgis:17-3.5-alpine # 推荐指定具体版本（PostgreSQL 17 + PostGIS 3.5）
-    platform: linux/amd64 # 兼容 Apple M 芯片（arm64），amd64 架构通用
-    container_name: postgis
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C" # 初始化编码设置
-    ports:
-      - "15432:5432"
-    volumes:
-      - ${DATA_PATH}postgis:/var/lib/postgresql/data
-      - ${CONFIG_PATH}postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-    #      - ${CONFIG_PATH}postgis/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
-    #      - ${CONFIG_PATH}postgis/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - backend
-      - frontend
+#  postgis:
+#    image: postgis/postgis:17-3.5-alpine # 推荐指定具体版本（PostgreSQL 17 + PostGIS 3.5）
+#    platform: linux/amd64 # 兼容 Apple M 芯片（arm64），amd64 架构通用
+#    container_name: postgis
+#    restart: always
+#    environment:
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#      POSTGRES_DB: ${POSTGRES_DB}
+#      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C" # 初始化编码设置
+#    ports:
+#      - "15432:5432"
+#    volumes:
+#      - ${DATA_PATH}postgis:/var/lib/postgresql/data
+#      - ${CONFIG_PATH}postgis/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+#    #      - ${CONFIG_PATH}postgis/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+#    #      - ${CONFIG_PATH}postgis/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres -d ${POSTGRES_DB}"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#    networks:
+#      - backend
+#      - frontend
 
   pgbouncer:
     build:
@@ -250,22 +295,18 @@ services:
       - backend
 
   minio:
+    build:
+      context: ./minio
     container_name: minio
-    image: minio/minio:latest
     restart: always
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
       - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
       - "${DATA_PATH}/minio:/data"
-    command: 'server /data --console-address ":9001"'
     ports:
       - "${MINIO_PORT_UI}:9001"
       - "${MINIO_PORT}:9000"
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      retries: 3
-      timeout: 5s
     networks:
       - backend
 

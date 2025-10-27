@@ -1,0 +1,178 @@
+# Traefik 3.5,3 配置文件
+# 优化版本 - 包含安全配置和性能优化
+# 适配 Lunchbox 项目服务
+
+# API 和 Dashboard 配置
+api:
+  dashboard: true
+  insecure: false # 禁用不安全访问，通过路由访问
+  debug: false
+
+# 全局配置
+global:
+  checkNewVersion: false # 禁用版本检查，提高启动速度
+  sendAnonymousUsage: false # 禁用匿名使用统计
+
+# 日志配置
+log:
+  level: INFO
+  format: common # 使用更简洁的日志格式
+  # filePath: /var/log/traefik.log  # 可选：启用文件日志
+
+# 访问日志配置（可选）
+# accessLog:
+#   filePath: /var/log/traefik-access.log
+#   format: json  # 便于日志分析
+#   bufferingSize: 100  # 缓冲区大小
+
+# 指标监控配置
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addRoutersLabels: true
+    addServicesLabels: true
+    buckets: [0.1, 0.3, 1.2, 5.0] # 自定义桶配置
+    manualRouting: true
+
+entryPoints:
+  # HTTP 入口点 - 自动重定向到 HTTPS
+  web:
+    address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+          permanent: true
+      # 安全配置
+      middlewares:
+        - secureHeaders@file
+        - noFLoC@file
+
+  # HTTPS 入口点
+  websecure:
+    address: ":443"
+    http:
+      # 启用 HTTP/2 和 HTTP/3
+      http2:
+        maxConcurrentStreams: 250 # 限制并发流数量
+      http3: {} # 启用 HTTP/3
+      # 中间件配置
+      middlewares:
+        - secureHeaders@file
+        - noFLoC@file
+        - gzip@file
+      # TLS 配置
+      tls:
+        certResolver: letsencrypt
+        # 安全配置
+        options: default
+        # 可选的域名配置
+        # domains:
+        #   - main: 'gaara.buzz'
+        #     sans:
+        #       - '*.gaara.buzz'
+
+  # 监控指标入口点
+  metrics:
+    address: ":8082"
+
+  # 数据库服务入口点
+  postgres:
+    address: ":5432"
+  redis:
+    address: ":6379"
+  rabbitmq:
+    address: ":5672"
+  pgbouncer:
+    address: ":6432"
+
+# 服务发现提供者配置
+providers:
+  # Docker 提供者
+  docker:
+    network: frontend
+    exposedByDefault: false # 默认不暴露容器
+    endpoint: "unix:///var/run/docker.sock"
+    watch: true
+    swarmMode: false
+
+  # 文件提供者
+  file:
+    filename: /config/dynamic.yml
+    watch: true
+    debugLogGeneratedTemplate: false # 禁用调试模板日志
+
+  # 可选的 Kubernetes 提供者
+  # kubernetesCRD:
+  #   allowCrossNamespace: false
+  #   allowExternalNameServices: false
+
+# 证书解析器配置
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: ailuoga166@gmail.com
+      storage: /config/acme.json
+      keyType: EC384 # 使用更安全的 ECC 密钥
+      # DNS 挑战配置（支持通配符证书）
+      dnsChallenge:
+        provider: aliyun
+        delayBeforeCheck: 0
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+      # 重试配置
+      httpClient:
+        timeout: 30 # 超时时间
+      # 安全配置
+      preferredChain: "ISRG Root X1" # 优先使用 ISRG 根证书
+
+  # 备用证书解析器（Cloudflare）
+  cloudflare:
+    acme:
+      email: ailuoga166@gmail.com
+      storage: /config/acme_cloudflare.json
+      keyType: EC384
+      dnsChallenge:
+        provider: cloudflare
+        delayBeforeCheck: 0
+        resolvers:
+          - "1.1.1.1:53"
+          - "8.8.8.8:53"
+
+# TLS 选项配置
+tls:
+  options:
+    default:
+      minVersion: VersionTLS12
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+      sniStrict: true # 严格的 SNI 检查
+      curvePreferences:
+        - CurveP521
+        - CurveP384
+        - CurveP256
+
+# 实验性功能（可选）
+experimental:
+  kubernetesGateway: false
+  http3: true
+
+# Ping 健康检查端点
+ping:
+  entryPoint: web
+
+# 服务器传输配置
+serversTransport:
+  insecureSkipVerify: false # 禁止跳过证书验证
+  maxIdleConnsPerHost: 2 # 限制空闲连接数
+  forwardingTimeouts:
+    dialTimeout: 30
+    responseHeaderTimeout: 0
+    idleConnTimeout: 90
