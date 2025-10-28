@@ -7,17 +7,40 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      service:
+        description: "选择要构建的服务 (留空构建所有服务)"
+        required: false
+        type: choice
+        options:
+          - all
+          - certbot
+          - nginx
+          - php-fpm
+          - postgres
+          - pgbouncer
+          - redis
+          - rabbitmq
+          - portainer
+          - minio
+      push_images:
+        description: "是否推送镜像到注册表"
+        required: false
+        type: boolean
+        default: true
 
 env:
   # Registry URLs
   DOCKERHUB_REGISTRY: docker.io
   TENCENT_REGISTRY: ccr.ccs.tencentyun.com
   REDHAT_REGISTRY: quay.io
+  GHCR_REGISTRY: ghcr.io
 
   # Image names
   DOCKERHUB_NAMESPACE: jiaoio
   TENCENT_NAMESPACE: jiaoio
   REDHAT_NAMESPACE: jiaoio
+  GHCR_NAMESPACE: woailuoisme
 
 jobs:
   build-and-push:
@@ -62,6 +85,12 @@ jobs:
             context: ./minio
             dockerfile: Dockerfile
 
+    # 条件执行：手动触发时可选择特定服务
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.service == 'all' ||
+      github.event.inputs.service == matrix.service
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,6 +100,9 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: |
+            image=moby/buildkit:buildx-stable-1
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -92,6 +124,13 @@ jobs:
           username: ${{ secrets.REDHAT_USERNAME }}
           password: ${{ secrets.REDHAT_TOKEN }}
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.GHCR_REGISTRY }}
+          username: ${{ secrets.GHCR_USERNAME }}
+          password: ${{ secrets.GHCR_TOKEN }}
+
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v5
@@ -100,12 +139,14 @@ jobs:
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/${{ matrix.service }}
             ${{ env.TENCENT_REGISTRY }}/${{ env.TENCENT_NAMESPACE }}/${{ matrix.service }}
             ${{ env.REDHAT_REGISTRY }}/${{ env.REDHAT_NAMESPACE }}/${{ matrix.service }}
+            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_NAMESPACE }}/${{ matrix.service }}
           tags: |
             type=ref,event=branch
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
@@ -113,16 +154,23 @@ jobs:
           context: ${{ matrix.context }}
           file: ${{ matrix.context }}/${{ matrix.dockerfile || 'Dockerfile' }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || github.event.inputs.push_images == true) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+
+      - name: Verify Docker image
+        run: |
+          echo "✅ 成功构建镜像: ${{ matrix.service }}"
+          echo "镜像标签: ${{ steps.meta.outputs.tags }}"
 
   scan-images:
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || github.event.inputs.push_images == true)
 
     steps:
       - name: Checkout code
@@ -143,11 +191,35 @@ jobs:
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/minio:latest
           format: "sarif"
           output: "trivy-results.sarif"
+          severity: "HIGH,CRITICAL"
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: "trivy-results.sarif"
+
+  summary:
+    runs-on: ubuntu-latest
+    needs: [build-and-push, scan-images]
+    if: always()
+
+    steps:
+      - name: Build Summary
+        run: |
+          echo "# 🐳 Docker 镜像构建摘要" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 构建状态" >> $GITHUB_STEP_SUMMARY
+          echo "- **构建作业**: ${{ needs.build-and-push.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **安全扫描**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🌐 目标注册表" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Hub: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- 腾讯云容器注册表: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Red Hat Registry: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Container Registry: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
+          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio" >> $GITHUB_STEP_SUMMARY
 
 #  notify:
 #    runs-on: ubuntu-latest
