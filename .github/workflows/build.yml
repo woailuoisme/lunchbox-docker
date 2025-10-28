@@ -30,6 +30,17 @@ on:
         required: false
         type: boolean
         default: true
+      registries:
+        description: "选择要推送的注册表"
+        required: false
+        type: choice
+        default: all
+        options:
+          - all
+          - dockerhub
+          - tencent
+          - redhat
+          - ghcr
 
 env:
   # Registry URLs
@@ -43,6 +54,12 @@ env:
   TENCENT_NAMESPACE: jiaoio
   REDHAT_NAMESPACE: jiaoio
   GHCR_NAMESPACE: woailuoisme
+
+  # Registry selection
+  REGISTRY_DOCKERHUB: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'dockerhub' }}
+  REGISTRY_TENCENT: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'tencent' }}
+  REGISTRY_REDHAT: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'redhat' }}
+  REGISTRY_GHCR: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'ghcr' }}
 
 jobs:
   build-and-push:
@@ -131,12 +148,14 @@ jobs:
             image=moby/buildkit:buildx-stable-1
 
       - name: Log in to Docker Hub
+        if: env.REGISTRY_DOCKERHUB == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to Tencent Cloud Registry
+        if: env.REGISTRY_TENCENT == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.TENCENT_REGISTRY }}
@@ -144,6 +163,7 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
 
       - name: Log in to Red Hat Registry
+        if: env.REGISTRY_REDHAT == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REDHAT_REGISTRY }}
@@ -151,6 +171,7 @@ jobs:
           password: ${{ secrets.REDHAT_TOKEN }}
 
       - name: Log in to GitHub Container Registry
+        if: env.REGISTRY_GHCR == 'true'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
@@ -235,10 +256,10 @@ jobs:
           echo "- **安全扫描**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🌐 目标注册表" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker Hub: ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- 腾讯云容器注册表: ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- Red Hat Registry: ✅" >> $GITHUB_STEP_SUMMARY
-          echo "- GitHub Container Registry: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Hub: ${{ env.REGISTRY_DOCKERHUB == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 腾讯云容器注册表: ${{ env.REGISTRY_TENCENT == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Red Hat Registry: ${{ env.REGISTRY_REDHAT == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Container Registry: ${{ env.REGISTRY_GHCR == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
           echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
