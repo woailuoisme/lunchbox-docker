@@ -1,17 +1,18 @@
 name: Build and Push Docker Images
 
 on:
-  # push:
-  #   branches: [main, master]
-  #   tags: ["v*"]
-  # pull_request:
-  #   branches: [main, master]
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
   workflow_dispatch:
     inputs:
       service:
-        description: "选择要构建的服务 (留空构建所有服务)"
+        description: "选择要构建的服务"
         required: false
         type: choice
+        default: all
         options:
           - all
           - certbot
@@ -55,87 +56,71 @@ env:
   REDHAT_NAMESPACE: jiaoio
   GHCR_NAMESPACE: woailuoisme
 
-  # Registry selection
-  REGISTRY_DOCKERHUB: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'dockerhub' }}
-  REGISTRY_TENCENT: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'tencent' }}
-  REGISTRY_REDHAT: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'redhat' }}
-  REGISTRY_GHCR: ${{ github.event.inputs.registries == 'all' || github.event.inputs.registries == 'ghcr' }}
-
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.set-services.outputs.services }}
+      registries: ${{ steps.set-registries.outputs.registries }}
+    steps:
+      - name: Set services based on input
+        id: set-services
+        run: |
+          if [ "${{ github.event.inputs.service }}" == "all" ] || [ -z "${{ github.event.inputs.service }}" ]; then
+            echo "services=['certbot','nginx','php-fpm','postgres','pgbouncer','redis','rabbitmq','portainer','minio','authelia','postgis']" >> $GITHUB_OUTPUT
+          else
+            echo "services=['${{ github.event.inputs.service }}']" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Set registries based on input
+        id: set-registries
+        run: |
+          if [ "${{ github.event.inputs.registries }}" == "all" ] || [ -z "${{ github.event.inputs.registries }}" ]; then
+            echo "registries=['dockerhub','tencent','redhat','ghcr']" >> $GITHUB_OUTPUT
+          else
+            echo "registries=['${{ github.event.inputs.registries }}']" >> $GITHUB_OUTPUT
+          fi
+
   build-and-push:
     runs-on: ubuntu-latest
+    needs: setup
     strategy:
       matrix:
+        service: ${{ fromJSON(needs.setup.outputs.services) }}
         include:
           - service: certbot
             context: ./certbot
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: nginx
             context: ./nginx
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: php-fpm
             context: ./php-fpm
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: postgres
             context: ./postgres
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: pgbouncer
             context: ./pgbouncer
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: redis
             context: ./redis
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: rabbitmq
             context: ./rabbitmq
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: portainer
             context: ./portainer
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: minio
             context: ./minio
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: authelia
             context: ./authelia
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
           - service: postgis
             context: ./postgis
             dockerfile: Dockerfile
-            tags: |
-              type=raw,value=latest
-              type=raw,value=alpine
-
-    # 条件执行：手动触发时根据选择的特定服务进行过滤
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.service == 'all' || github.event.inputs.service == matrix.service }}
 
     steps:
       - name: Checkout code
@@ -151,14 +136,14 @@ jobs:
             image=moby/buildkit:buildx-stable-1
 
       - name: Log in to Docker Hub
-        if: env.REGISTRY_DOCKERHUB == 'true'
+        if: contains(fromJSON(needs.setup.outputs.registries), 'dockerhub')
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Log in to Tencent Cloud Registry
-        if: env.REGISTRY_TENCENT == 'true'
+        if: contains(fromJSON(needs.setup.outputs.registries), 'tencent')
         uses: docker/login-action@v3
         with:
           registry: ${{ env.TENCENT_REGISTRY }}
@@ -166,7 +151,7 @@ jobs:
           password: ${{ secrets.TENCENT_PASSWORD }}
 
       - name: Log in to Red Hat Registry
-        if: env.REGISTRY_REDHAT == 'true'
+        if: contains(fromJSON(needs.setup.outputs.registries), 'redhat')
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REDHAT_REGISTRY }}
@@ -174,7 +159,7 @@ jobs:
           password: ${{ secrets.REDHAT_TOKEN }}
 
       - name: Log in to GitHub Container Registry
-        if: env.REGISTRY_GHCR == 'true'
+        if: contains(fromJSON(needs.setup.outputs.registries), 'ghcr')
         uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
@@ -186,11 +171,13 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/${{ matrix.service }}
-            ${{ env.TENCENT_REGISTRY }}/${{ env.TENCENT_NAMESPACE }}/${{ matrix.service }}
-            ${{ env.REDHAT_REGISTRY }}/${{ env.REDHAT_NAMESPACE }}/${{ matrix.service }}
-            ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_NAMESPACE }}/${{ matrix.service }}
-          tags: ${{ matrix.tags }}
+            ${{ contains(fromJSON(needs.setup.outputs.registries), 'dockerhub') && format('{0}/{1}/{2}', env.DOCKERHUB_REGISTRY, env.DOCKERHUB_NAMESPACE, matrix.service) || '' }}
+            ${{ contains(fromJSON(needs.setup.outputs.registries), 'tencent') && format('{0}/{1}/{2}', env.TENCENT_REGISTRY, env.TENCENT_NAMESPACE, matrix.service) || '' }}
+            ${{ contains(fromJSON(needs.setup.outputs.registries), 'redhat') && format('{0}/{1}/{2}', env.REDHAT_REGISTRY, env.REDHAT_NAMESPACE, matrix.service) || '' }}
+            ${{ contains(fromJSON(needs.setup.outputs.registries), 'ghcr') && format('{0}/{1}/{2}', env.GHCR_REGISTRY, env.GHCR_NAMESPACE, matrix.service) || '' }}
+          tags: |
+            type=raw,value=latest
+            type=raw,value=alpine
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
@@ -213,7 +200,7 @@ jobs:
 
   scan-images:
     runs-on: ubuntu-latest
-    needs: build-and-push
+    needs: [setup, build-and-push]
     if: github.event_name != 'pull_request' && (github.event_name != 'workflow_dispatch' || github.event.inputs.push_images == true)
 
     steps:
@@ -246,7 +233,7 @@ jobs:
 
   summary:
     runs-on: ubuntu-latest
-    needs: [build-and-push, scan-images]
+    needs: [setup, build-and-push, scan-images]
     if: always()
 
     steps:
@@ -259,13 +246,13 @@ jobs:
           echo "- **安全扫描**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🌐 目标注册表" >> $GITHUB_STEP_SUMMARY
-          echo "- Docker Hub: ${{ env.REGISTRY_DOCKERHUB == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- 腾讯云容器注册表: ${{ env.REGISTRY_TENCENT == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- Red Hat Registry: ${{ env.REGISTRY_REDHAT == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- GitHub Container Registry: ${{ env.REGISTRY_GHCR == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Hub: ${{ contains(fromJSON(needs.setup.outputs.registries), 'dockerhub') && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- 腾讯云容器注册表: ${{ contains(fromJSON(needs.setup.outputs.registries), 'tencent') && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Red Hat Registry: ${{ contains(fromJSON(needs.setup.outputs.registries), 'redhat') && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- GitHub Container Registry: ${{ contains(fromJSON(needs.setup.outputs.registries), 'ghcr') && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
-          echo "- ${{ github.event.inputs.service == 'all' && 'certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis' || github.event.inputs.service }}" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ join(fromJSON(needs.setup.outputs.services), ', ') }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🏷️ 镜像标签策略" >> $GITHUB_STEP_SUMMARY
           echo "- **所有服务**: latest, alpine" >> $GITHUB_STEP_SUMMARY
