@@ -50,49 +50,10 @@ jobs:
     strategy:
       matrix:
         service:
-          - certbot
           - nginx
-          - php-fpm
-          - postgres
-          - pgbouncer
-          - redis
-          - rabbitmq
-          - portainer
-          - minio
-          - authelia
-          - postgis
         include:
-          - service: certbot
-            context: ./certbot
           - service: nginx
             context: ./nginx
-            dockerfile: Dockerfile
-          - service: php-fpm
-            context: ./php-fpm
-            dockerfile: Dockerfile
-          - service: postgres
-            context: ./postgres
-            dockerfile: Dockerfile
-          - service: pgbouncer
-            context: ./pgbouncer
-            dockerfile: Dockerfile
-          - service: redis
-            context: ./redis
-            dockerfile: Dockerfile
-          - service: rabbitmq
-            context: ./rabbitmq
-            dockerfile: Dockerfile
-          - service: portainer
-            context: ./portainer
-            dockerfile: Dockerfile
-          - service: minio
-            context: ./minio
-            dockerfile: Dockerfile
-          - service: authelia
-            context: ./authelia
-            dockerfile: Dockerfile
-          - service: postgis
-            context: ./postgis
             dockerfile: Dockerfile
 
     # 条件执行：手动触发时可选择特定服务
@@ -190,17 +151,7 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: |
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/nginx:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/php-fpm:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgres:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/pgbouncer:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/redis:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/rabbitmq:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/portainer:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/minio:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/authelia:latest
-            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgis:latest
           format: "sarif"
           output: "trivy-results.sarif"
           severity: "HIGH,CRITICAL"
@@ -231,7 +182,7 @@ jobs:
           echo "- GitHub Container Registry: ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
-          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
+          echo "- nginx" >> $GITHUB_STEP_SUMMARY
 
 #  notify:
 #    runs-on: ubuntu-latest
