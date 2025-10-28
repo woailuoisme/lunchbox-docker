@@ -55,70 +55,67 @@ jobs:
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: nginx
             context: ./nginx
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value=stable
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: php-fpm
             context: ./php-fpm
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: postgres
             context: ./postgres
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value=stable
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: pgbouncer
             context: ./pgbouncer
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: redis
             context: ./redis
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value=stable
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: rabbitmq
             context: ./rabbitmq
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: portainer
             context: ./portainer
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: minio
             context: ./minio
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: authelia
             context: ./authelia
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
           - service: postgis
             context: ./postgis
             dockerfile: Dockerfile
             tags: |
               type=raw,value=latest
-              type=raw,value={{date 'YYYYMMDD'}}
+              type=raw,value=alpine
 
     steps:
       - name: Checkout code
@@ -247,8 +244,7 @@ jobs:
           echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🏷️ 镜像标签策略" >> $GITHUB_STEP_SUMMARY
-          echo "- **所有服务**: latest, {{date 'YYYYMMDD'}}" >> $GITHUB_STEP_SUMMARY
-          echo "- **稳定服务 (nginx, postgres, redis)**: 额外包含 stable 标签" >> $GITHUB_STEP_SUMMARY
+          echo "- **所有服务**: latest, alpine" >> $GITHUB_STEP_SUMMARY
 
 #  notify:
 #    runs-on: ubuntu-latest
