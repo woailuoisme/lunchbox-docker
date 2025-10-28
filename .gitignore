@@ -18,6 +18,7 @@
 cloudflare.ini
 aliyun.ini
 registry.ini
+./scripts/registry.ini
 
 ./certbot/conf/aliyun.ini
 ./certbot/conf/cloudflare.ini

@@ -1,8 +1,9 @@
+ARG REDIS_VERSION=7.4-alpine
+ARG TIMEZONE=Asia/Shanghai
+
 FROM redis:${REDIS_VERSION}
 LABEL maintainer="seaside <531773730@qq.com>"
 
-ARG REDIS_VERSION=7.4-alpine
-ARG TIMEZONE=Asia/Shanghai
 
 ## For security settings uncomment, make the dir, copy conf, and also start with the conf, to use it
 RUN mkdir -p /usr/local/etc/redis

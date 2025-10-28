@@ -1,4 +1,6 @@
-FROM rabbitmq:4.1-management-alpine
+ARG RABBITMQ_VERSION=4.1-management-alpine
+FROM rabbitmq:${REDIS_VERSION}
+
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 下载并安装延迟消息交换插件（4.1.0版本）
