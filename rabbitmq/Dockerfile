@@ -1,5 +1,5 @@
 ARG RABBITMQ_VERSION=4.1-management-alpine
-FROM rabbitmq:${REDIS_VERSION}
+FROM rabbitmq:${RABBITMQ_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
 
