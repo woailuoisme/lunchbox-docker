@@ -2,10 +2,10 @@ name: Build and Push Docker Images
 
 on:
   # push:
-  # branches: [main, master]
-  # tags: ["v*"]
+  #   branches: [main, master]
+  #   tags: ["v*"]
   # pull_request:
-  # branches: [main, master]
+  #   branches: [main, master]
   workflow_dispatch:
     inputs:
       service:
@@ -64,7 +64,6 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    # 服务选择逻辑
     strategy:
       matrix:
         include:
@@ -136,10 +135,7 @@ jobs:
               type=raw,value=alpine
 
     # 条件执行：手动触发时根据选择的特定服务进行过滤
-    if: |
-      github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.service == 'all' ||
-      github.event.inputs.service == matrix.service
+    if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.service == 'all' || github.event.inputs.service == matrix.service }}
 
     steps:
       - name: Checkout code
