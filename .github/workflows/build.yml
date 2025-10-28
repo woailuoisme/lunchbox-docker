@@ -2,10 +2,10 @@ name: Build and Push Docker Images
 
 on:
   # push:
-    # branches: [main, master]
-    # tags: ["v*"]
+  # branches: [main, master]
+  # tags: ["v*"]
   # pull_request:
-    # branches: [main, master]
+  # branches: [main, master]
   workflow_dispatch:
     inputs:
       service:
@@ -64,6 +64,7 @@ env:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    # 服务选择逻辑
     strategy:
       matrix:
         include:
@@ -133,6 +134,12 @@ jobs:
             tags: |
               type=raw,value=latest
               type=raw,value=alpine
+
+    # 条件执行：手动触发时根据选择的特定服务进行过滤
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.service == 'all' ||
+      github.event.inputs.service == matrix.service
 
     steps:
       - name: Checkout code
@@ -262,7 +269,7 @@ jobs:
           echo "- GitHub Container Registry: ${{ env.REGISTRY_GHCR == 'true' && '✅' || '❌' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
-          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
+          echo "- ${{ github.event.inputs.service == 'all' && 'certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis' || github.event.inputs.service }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 🏷️ 镜像标签策略" >> $GITHUB_STEP_SUMMARY
           echo "- **所有服务**: latest, alpine" >> $GITHUB_STEP_SUMMARY
