@@ -23,6 +23,8 @@ on:
           - rabbitmq
           - portainer
           - minio
+          - authelia
+          - postgis
       push_images:
         description: "是否推送镜像到注册表"
         required: false
@@ -57,6 +59,8 @@ jobs:
           - rabbitmq
           - portainer
           - minio
+          - authelia
+          - postgis
         include:
           - service: certbot
             context: ./certbot
@@ -83,6 +87,12 @@ jobs:
             dockerfile: Dockerfile
           - service: minio
             context: ./minio
+            dockerfile: Dockerfile
+          - service: authelia
+            context: ./authelia
+            dockerfile: Dockerfile
+          - service: postgis
+            context: ./postgis
             dockerfile: Dockerfile
 
     # 条件执行：手动触发时可选择特定服务
@@ -189,6 +199,8 @@ jobs:
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/rabbitmq:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/portainer:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/minio:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/authelia:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgis:latest
           format: "sarif"
           output: "trivy-results.sarif"
           severity: "HIGH,CRITICAL"
@@ -219,7 +231,7 @@ jobs:
           echo "- GitHub Container Registry: ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
-          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio" >> $GITHUB_STEP_SUMMARY
+          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
 
 #  notify:
 #    runs-on: ubuntu-latest
