@@ -49,12 +49,76 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service:
-          - nginx
         include:
+          - service: certbot
+            context: ./certbot
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
           - service: nginx
             context: ./nginx
             dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value=stable
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: php-fpm
+            context: ./php-fpm
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: postgres
+            context: ./postgres
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value=stable
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: pgbouncer
+            context: ./pgbouncer
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: redis
+            context: ./redis
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value=stable
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: rabbitmq
+            context: ./rabbitmq
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: portainer
+            context: ./portainer
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: minio
+            context: ./minio
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: authelia
+            context: ./authelia
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
+          - service: postgis
+            context: ./postgis
+            dockerfile: Dockerfile
+            tags: |
+              type=raw,value=latest
+              type=raw,value={{date 'YYYYMMDD'}}
 
     steps:
       - name: Checkout code
@@ -105,13 +169,7 @@ jobs:
             ${{ env.TENCENT_REGISTRY }}/${{ env.TENCENT_NAMESPACE }}/${{ matrix.service }}
             ${{ env.REDHAT_REGISTRY }}/${{ env.REDHAT_NAMESPACE }}/${{ matrix.service }}
             ${{ env.GHCR_REGISTRY }}/${{ env.GHCR_NAMESPACE }}/${{ matrix.service }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
+          tags: ${{ matrix.tags }}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
@@ -145,7 +203,17 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: |
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/certbot:latest
             ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/nginx:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/php-fpm:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgres:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/pgbouncer:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/redis:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/rabbitmq:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/portainer:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/minio:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/authelia:latest
+            ${{ env.DOCKERHUB_REGISTRY }}/${{ env.DOCKERHUB_NAMESPACE }}/postgis:latest
           format: "sarif"
           output: "trivy-results.sarif"
           severity: "HIGH,CRITICAL"
@@ -176,7 +244,11 @@ jobs:
           echo "- GitHub Container Registry: ✅" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "## 📦 构建的服务" >> $GITHUB_STEP_SUMMARY
-          echo "- nginx" >> $GITHUB_STEP_SUMMARY
+          echo "- certbot, nginx, php-fpm, postgres, pgbouncer, redis, rabbitmq, portainer, minio, authelia, postgis" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 🏷️ 镜像标签策略" >> $GITHUB_STEP_SUMMARY
+          echo "- **所有服务**: latest, {{date 'YYYYMMDD'}}" >> $GITHUB_STEP_SUMMARY
+          echo "- **稳定服务 (nginx, postgres, redis)**: 额外包含 stable 标签" >> $GITHUB_STEP_SUMMARY
 
 #  notify:
 #    runs-on: ubuntu-latest
