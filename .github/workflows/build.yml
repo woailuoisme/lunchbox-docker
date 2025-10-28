@@ -56,12 +56,6 @@ jobs:
             context: ./nginx
             dockerfile: Dockerfile
 
-    # 条件执行：手动触发时可选择特定服务
-    if: |
-      github.event_name != 'workflow_dispatch' ||
-      github.event.inputs.service == 'all' ||
-      github.event.inputs.service == matrix.service
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
