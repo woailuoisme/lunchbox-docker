@@ -138,23 +138,22 @@ set_secret_from_config "DOCKERHUB_TOKEN" "DOCKERHUB_TOKEN" "Docker Hub 访问令
 # 腾讯云机密配置
 echo "☁️  腾讯云配置"
 echo "---------------"
-set_secret_from_config "TENCENT_NAMESPACE" "TENCENT_NAMESPACE" "腾讯云命名空间" false
-set_secret_from_config "TENCENT_USERNAME" "TENCENT_USERNAME" "腾讯云用户名" false
-set_secret_from_config "TENCENT_PASSWORD" "TENCENT_PASSWORD" "腾讯云密码" false
+set_secret_from_config "TENCENT_REGISTRY_USERNAME" "TENCENT_USERNAME" "腾讯云镜像仓库用户名" false
+set_secret_from_config "TENCENT_REGISTRY_PASSWORD" "TENCENT_PASSWORD" "腾讯云镜像仓库密码" true
+set_secret_from_config "TENCENT_REGISTRY_NAMESPACE" "TENCENT_NAMESPACE" "腾讯云镜像仓库命名空间" false
 
 # Red Hat Registry 机密配置
 echo "🔴 Red Hat Registry 配置"
 echo "-------------------------"
-set_secret_from_config "REDHAT_NAMESPACE" "REDHAT_NAMESPACE" "Red Hat 命名空间" false
-set_secret_from_config "REDHAT_USERNAME" "REDHAT_USERNAME" "Red Hat 用户名" false
-set_secret_from_config "REDHAT_TOKEN" "REDHAT_TOKEN" "Red Hat 访问令牌" true
+set_secret_from_config "REDHAT_REGISTRY_USERNAME" "REDHAT_USERNAME" "Red Hat Registry 用户名" false
+set_secret_from_config "REDHAT_REGISTRY_TOKEN" "REDHAT_TOKEN" "Red Hat Registry 访问令牌" true
 
 # GitHub Container Registry 配置
 echo "📦 GitHub Container Registry 配置"
 echo "----------------------------------"
 # 注意：GitHub 不允许以 GITHUB_ 开头的 secret 名称，所以使用 GHCR_ 前缀
-set_secret_from_config "GHCR_USERNAME" "GITHUB_USERNAME" "GitHub Container Registry 用户名" false
-set_secret_from_config "GHCR_TOKEN" "GITHUB_TOKEN" "GitHub Container Registry 访问令牌" true
+set_secret_from_config "GITHUB_USERNAME" "GITHUB_USERNAME" "GitHub Container Registry 用户名" false
+set_secret_from_config "GITHUB_TOKEN" "GITHUB_TOKEN" "GitHub Container Registry 访问令牌" true
 
 # 可选配置
 echo "🔔 可选配置"
@@ -196,5 +195,5 @@ echo "   - 确保注册表权限正确"
 echo ""
 echo "📝 注意:"
 echo "   - 所有配置值都从 registry.ini 文件自动读取"
-echo "   - GitHub 不允许以 GITHUB_ 开头的 secret 名称，因此使用了 GHCR_ 前缀"
+echo "   - 所有 secret 名称都与工作流文件中的引用保持一致"
 echo "   - 敏感信息在显示时已用星号隐藏"
