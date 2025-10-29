@@ -10,7 +10,6 @@ RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
 # 安装pgbouncer和其他必要工具
 RUN apk add --no-cache pgbouncer shadow
 
-
 ARG TIMEZONE=Asia/Shanghai
 
 # 创建非root用户运行pgbouncer

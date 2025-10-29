@@ -215,7 +215,7 @@ check-containers: ## Check container status
 # =============================================================================
 
 build: ## Build all services
-	docker compose ${DC_RUN_ARGS} build
+	docker compose ${DC_RUN_ARGS} build``
 
 build-%: ## Build specific service
 	docker compose ${DC_RUN_ARGS} build $*
@@ -341,3 +341,13 @@ portainer-reset-password:
 
 dozzle-pwd:
 	docker run --rm amir20/dozzle generate Admin --name Admin --email me@email.net --password admin_secret
+
+build-base-franken:
+	cd php-base-franken && docker buildx build \
+	--platform linux/amd64,linux/arm64 \
+	--build-arg CHANGE_SOURCE=true \
+	--tag docker.io/php-base-franken:php8.4-alpine \
+	--tag docker.io/php-base-franken:php8.4-alpine-latest \
+	--tag docker.io/php-base-franken:php8.4-latest \
+	--push \
+	.
