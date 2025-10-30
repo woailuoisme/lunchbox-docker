@@ -1,11 +1,11 @@
 # ============================================================================
 # PHP 基础镜像构建文件
-# 基于 PHP 8.4 FPM Alpine 版本，包含所有PHP扩展和依赖
-# 作为 php-fpm、php-queue、php-schedule 的基础镜像
+# 基于 frankenphp:1.9.1-php8.4-alpine 版本，包含所有PHP扩展和依赖
+# 作为 frankenphp、php-queue、php-schedule 的基础镜像
 # 优化版本：减少镜像体积，移除不必要的开发工具
 # ============================================================================
 
-FROM php:8.4-fpm-alpine3.22
+FROM php:8.4-cli-alpine3.22
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # ============================================================================
@@ -23,10 +23,6 @@ ARG WWWGROUP=33
 ARG WITH_PG=true
 ARG WITH_AMQP=true
 ARG WITH_LDAP=false
-
-ARG WITH_SWOOLE=false
-# 将 Swoole 版本设置为环境变量，方便将来更新
-ENV SWOOLE_VERSION=5.1.8
 
 # ============================================================================
 # 系统依赖安装和PHP扩展编译（合并为单个RUN指令以减少层数）
@@ -62,9 +58,8 @@ RUN set -eux; \
     && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif \
     && if [ "$WITH_PG" = "true" ]; then docker-php-ext-install -j"$(nproc)" pdo_pgsql pgsql; fi \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-install -j"$(nproc)" ldap; fi \
-    && pecl install redis && docker-php-ext-enable redis opcache \
+    && pecl install redis && docker-php-ext-enable redis \
     && if [ "$WITH_AMQP" = "true" ]; then pecl install amqp && docker-php-ext-enable amqp; fi \
-    && if [ "$WITH_SWOOLE" = "true" ]; then pecl install swoole-${SWOOLE_VERSION} && docker-php-ext-enable swoole; fi \
     && pecl clear-cache \
     && rm -rf /tmp/pear /tmp/pecl-build \
     && apk del .build-deps \

@@ -351,3 +351,11 @@ build-base-franken:
 	--tag docker.io/php-base-franken:php8.4-latest \
 	--push \
 	.
+build-base:
+	cd php-base-cli && docker buildx build  \
+	--platform linux/amd64,linux/arm64 \
+	--build-arg CHANGE_SOURCE=true \
+	--tag docker.io/php-base:php8.4-alpine3.22 \
+	--tag docker.io/php-base:php8.4-alpine3.22-latest \
+	--push \
+	.
