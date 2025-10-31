@@ -11,6 +11,7 @@ RUN wget -O /opt/rabbitmq/plugins/rabbitmq_delayed_message_exchange-4.1.0.ez \
 # 复制配置文件
 COPY config/rabbitmq.conf /etc/rabbitmq/
 
+
 # 设置健康检查
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD rabbitmq-diagnostics -q ping
