@@ -64,9 +64,6 @@ jobs:
           cd php-base-franken && docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg CHANGE_SOURCE=false \
-            --build-arg WITH_PG=true \
-            --build-arg WITH_AMQP=true \
-            --build-arg WITH_LDAP=false \
             --tag $REGISTRY_DOCKERHUB/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION \
             --tag $REGISTRY_DOCKERHUB/php-base-franken:latest \

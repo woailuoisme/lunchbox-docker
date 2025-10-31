@@ -147,23 +147,27 @@ services:
       - meilisearch
       - rabbitmq
 
-#  php-franken:
-#    build:
-#      context: ./php-franken
-#      args:
-#        - CHANGE_SOURCE=${CHANGE_SOURCE}
-#    container_name: php-franken
-#    restart: always
-#    volumes:
-#      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-#      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
-#    environment:
-#      - APP_PATH=${APP_PATH}
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
-#    networks:
-#      - backend
-#      - frontend
+  php-franken:
+    build:
+      context: ./php-franken
+    container_name: php-franken
+    restart: always
+    ports:
+      - "8001:8001"
+      - "2019:2019"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=docker
+      - APP_DEBUG=false
+      - WATCH=true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - backend
+      - frontend
 
   postgres:
     build:

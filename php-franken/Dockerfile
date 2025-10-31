@@ -1,61 +1,35 @@
-FROM ccr.ccs.tencentyun.com/jiaoio/php-base-franken
+#FROM ccr.ccs.tencentyun.com/jiaoio/php-base-franken
+FROM jiaoio/php-base-franken
+ENV APP_PATH=/var/www/lunchbox \
+    APP_PORT=8001 \
+    APP_ENV=docker \
+    APP_DEBUG=true \
+    OCTANE_SERVER=frankenphp \
+    OCTANE_HOST=0.0.0.0 \
+    WATCH=false \
+    OCTANE_WORKERS=2 \
+    OCTANE_ADMIN_PORT=2019 \
+    OCTANE_MAX_REQUESTS=500 \
+    OCTANE_POLL=false \
+    OCTANE_HTTPS=false \
+    OCTANE_HTTP_REDIRECT=false \
+    OCTANE_LOG_LEVEL=info
 
-## 设置工作目录
-#WORKDIR /var/www/laravel
-#
-## ---------------------------------
-## 环境变量 (Environment Variables)
-## ---------------------------------
-## 配置 PHP
-## 配置 Laravel Octane
-#ENV APP_ENV production
-#ENV APP_PORT 8000
-#ENV OCTANE_SERVER frankenphp
-#ENV OCTANE_HOST 0.0.0.0
-#ENV PHP_INI_DIR /usr/local/etc/php
-#COPY ./docker/php.ini $PHP_INI_DIR/php.ini
-# # ---------------------------------
-# # Composer
-# # ---------------------------------
-# # 从官方镜像复制 Composer
-# COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# 复制 PHP 配置
+COPY config/php.ini $PHP_INI_DIR/conf.d/99-custom.ini
 
-# # ---------------------------------
-# # 应用代码和依赖 (Application Code & Dependencies)
-# # ---------------------------------
-# # 复制 composer 文件
-# COPY --chown=www-data:www-data composer.json composer.lock ./
+# 复制启动脚本
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
-# # 以非 root 用户身份安装 Composer 依赖（更安全）
-# # 这将触发 frankenphp/binary-plugin 插件下载 FrankenPHP 二进制文件
-# USER www-data
-# RUN composer install --no-interaction --no-dev --optimize-autoloader
+# 复制健康检查脚本
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
 
-# # 复制剩余的应用代码
-# USER root
-# COPY --chown=www-data:www-data . .
+# 健康检测配置
+HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
+    CMD /usr/local/bin/healthcheck.sh
 
-# # ---------------------------------
-# # 优化和权限 (Optimization & Permissions)
-# # ---------------------------------
-# RUN chown -R www-data:www-data storage bootstrap/cache \
-#     && chmod -R 775 storage bootstrap/cache
-
-# # 清理缓存并生成优化文件
-# USER www-data
-# RUN php artisan config:cache \
-#     && php artisan route:cache \
-#     && php artisan view:cache
-
-# ---------------------------------
-# 运行 (Run)
-# ---------------------------------
-# 暴露 Octane 运行的端口
-EXPOSE ${APP_PORT}
-
-# 以 www-data 用户运行 Octane
-# CMD ["php", "artisan", "octane:start", "--server=frankenphp","--workers=4","--host=0.0.0.0", "--port=${APP_PORT}"]
-
-EXPOSE 8001 2019
-WORKDIR /var/www
-CMD ["php", "/var/www/lunchbox/artisan", "octane:start", "--server=frankenphp", "--port=8001", "--watch", "--env=docker "]
+EXPOSE ${APP_PORT} ${OCTANE_ADMIN_PORT}
+WORKDIR $APP_PATH
+CMD ["/usr/local/bin/startup.sh"]

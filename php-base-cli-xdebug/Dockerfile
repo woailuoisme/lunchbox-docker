@@ -1,5 +1,8 @@
 # ============================================================================
 # PHP 基础镜像构建文件
+# 基于 php:8.4-cli-alpine3.22 版本，包含所有PHP扩展和依赖
+# 作为 frankenphp、php-queue、php-schedule 的基础镜像
+# 优化版本：减少镜像体积，包含 Xdebug 调试工具
 # ============================================================================
 
 FROM php:8.4-cli-alpine3.22
@@ -20,6 +23,7 @@ ARG WWWGROUP=33
 ARG WITH_PG=true
 ARG WITH_AMQP=true
 ARG WITH_LDAP=false
+ARG WITH_XDEBUG=true
 
 # ============================================================================
 # 系统依赖安装和PHP扩展编译（合并为单个RUN指令以减少层数）
@@ -50,6 +54,7 @@ RUN set -eux; \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache --virtual .pg-build postgresql-dev; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache --virtual .ldap-build openldap-dev; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
+    && if [ "$WITH_XDEBUG" = "true" ]; then apk add --no-cache --virtual .xdebug-build linux-headers; fi \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
     && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif \
@@ -57,12 +62,14 @@ RUN set -eux; \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-install -j"$(nproc)" ldap; fi \
     && pecl install redis && docker-php-ext-enable redis \
     && if [ "$WITH_AMQP" = "true" ]; then pecl install amqp && docker-php-ext-enable amqp; fi \
+    && if [ "$WITH_XDEBUG" = "true" ]; then pecl install xdebug && docker-php-ext-enable xdebug; fi \
     && pecl clear-cache \
     && rm -rf /tmp/pear /tmp/pecl-build \
     && apk del .build-deps \
     && if [ "$WITH_PG" = "true" ]; then apk del .pg-build; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk del .ldap-build; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk del .amqp-build; fi \
+    && if [ "$WITH_XDEBUG" = "true" ]; then apk del .xdebug-build; fi \
     && rm -rf /var/cache/apk/* \
     && find /usr/local/lib/php -name "*.a" -delete \
     && find /usr/local/lib/php -name "*.la" -delete \
@@ -86,9 +93,16 @@ RUN deluser www-data 2>/dev/null || true \
     && chown -R www-data:www-data /var/www /tmp /var/log/php /var/run/php \
     /var/log/supervisor /var/run/supervisor \
     /usr/local/etc/php/conf.d /usr/local/etc/php-fpm.d \
-    && touch /var/log/php/error.log /var/log/php/slow.log \
-    && chmod 644 /var/log/php/error.log /var/log/php/slow.log \
+    && touch /var/log/php/error.log /var/log/php/slow.log /var/log/php/xdebug.log \
+    && chmod 644 /var/log/php/error.log /var/log/php/slow.log /var/log/php/xdebug.log \
     && chmod 755 /var/log/php /var/run/php /var/log/supervisor /var/run/supervisor
+
+# ============================================================================
+# 配置文件复制
+# ============================================================================
+
+COPY php.ini /usr/local/etc/php/conf.d/99-custom.ini
+COPY xdebug.ini /usr/local/etc/php/conf.d/99-xdebug.ini
 
 # ============================================================================
 # 工作目录设置
