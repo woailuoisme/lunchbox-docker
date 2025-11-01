@@ -5,6 +5,18 @@
 
 set -e
 
+# 检查是否启用应用
+if [ "${APP_ENABLE}" != "true" ]; then
+    echo "APP_ENABLE 未设置为 true，跳过 FrankenPHP 启动，但允许 supervisor 运行"
+    # 如果有supervisord配置，启动supervisord
+    if [ "$ENABLE_SUPERVISOR" = "true" ] && has_supervisord_config; then
+        log_info "启动supervisord管理后台进程..."
+        start_supervisord_background
+    fi
+    # 保持容器运行但不启动FrankenPHP
+    tail -f /dev/null
+fi
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'

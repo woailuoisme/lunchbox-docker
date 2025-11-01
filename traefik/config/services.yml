@@ -25,6 +25,12 @@ tcp:
 # HTTP 服务配置
 http:
   services:
+    # Authelia 认证服务
+    authelia:
+      loadBalancer:
+        servers:
+          - url: "http://authelia:9091"
+        passHostHeader: true
     # Nginx Web 服务器
     nginx:
       loadBalancer:

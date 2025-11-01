@@ -5,24 +5,24 @@ networks:
     name: backend
 
 services:
-  #  authelia:
-  #    build:
-  #      context: ./authelia
-  #    container_name: authelia
-  #    restart: unless-stopped
-  #    ports:
-  #      - "9091:9091"
-  #    volumes:
-  #      - ${CONFIG_PATH}authelia:/config
-  #    environment:
-  #      - "TZ=${TIMEZONE}"
-  #      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
-  #    depends_on:
-  #      - redis
-  #    networks:
-  #      - frontend
-  #      - backend
-  #
+  authelia:
+    build:
+      context: ./authelia
+    container_name: authelia
+    restart: unless-stopped
+    ports:
+      - "9091:9091"
+    volumes:
+          - ${CONFIG_PATH}authelia/config:/config
+    environment:
+      - "TZ=${TIMEZONE}"
+      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+    depends_on:
+      - redis
+    networks:
+      - frontend
+      - backend
+
   traefik:
     container_name: traefik
     image: traefik:3.5.4
@@ -34,21 +34,18 @@ services:
       - "80:80"
       - "443:443"
       - "8080:8080"
-      - "8082:8082"
-    #        - "3306:3306"
-    #        - "5432:5432"
-    #        - "6379:6379"
+      - "45432:5432"
+      - "46379:6379"
+    # - "43306:3306"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ${CONFIG_PATH}traefik/config:/config
       - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
-      - ${CONFIG_PATH}traefik/certs:/config/certs
       - ${LOG_PATH}traefik:/traefik/logs
     networks:
       - frontend
       - backend
-    #      depends_on: ['errorPage','authelia']
     depends_on:
       error-pages:
         condition: service_started
@@ -64,6 +61,8 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
+      authelia:
+        condition: service_started
 
   #  certbot:
   #    build:

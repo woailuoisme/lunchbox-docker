@@ -1,11 +1,11 @@
-ARG AUTHELA_VERSION=4.39
+ARG AUTHELA_VERSION=4.39.13
 FROM authelia/authelia:${AUTHELA_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # 复制配置文件
-COPY configuration.yml /config/configuration.yml
-COPY users_database.yml /config/users_database.yml
+COPY ./config/configuration.yml /config/configuration.yml
+COPY ./config/users_database.yml /config/users_database.yml
 # 创建通知文件
 RUN touch /config/notification.txt
 # 暴露端口

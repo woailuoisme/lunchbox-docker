@@ -18,16 +18,25 @@ tcp:
       rule: "HostSNI(`*`)"
       service: "redis"
 
-    # PgBouncer 连接池路由
-    pgbouncer:
-      entryPoints:
-        - "pgbouncer"
-      rule: "HostSNI(`*`)"
-      service: "pgbouncer"
+#    # PgBouncer 连接池路由
+#    pgbouncer:
+#      entryPoints:
+#        - "pgbouncer"
+#      rule: "HostSNI(`*`)"
+#      service: "pgbouncer"
 
 # HTTP 路由配置
 http:
   routers:
+    # Authelia 认证服务路由
+    authelia:
+      entryPoints:
+        - "websecure"
+      priority: 5
+      service: "authelia"
+      rule: "Host(`auth.local`)"
+      tls: {}
+
     # Traefik Dashboard 路由
     traefik-dashboard:
       entryPoints:
@@ -38,16 +47,19 @@ http:
         - "auth-basic"
       tls: {}
 
-    # 主应用路由
+    # 主应用路由（路径特定认证）
     app:
       entryPoints:
         - "websecure"
       priority: 10
       service: "nginx"
       middlewares:
+        - "app-auth@file"
         - "gzip@file"
       rule: "Host(`app.local`) || Host(`www.app.local`)"
       tls: {}
+    #      tls:
+    #        certResolver: letsencrypt-cloudflare
 
     # 搜索服务路由
     meilisearch:

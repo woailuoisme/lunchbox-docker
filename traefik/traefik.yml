@@ -89,7 +89,7 @@ tls:
 
   # ACME 配置 (Let's Encrypt)
   certificatesResolvers:
-    # Let's Encrypt 生产环境
+    # Let's Encrypt 生产环境 - HTTP 挑战（默认）
     letsencrypt:
       acme:
         email: "admin@yourdomain.com"
@@ -97,7 +97,32 @@ tls:
         # HTTP 挑战
         httpChallenge:
           entryPoint: web
-        # 或者使用 DNS 挑战（推荐用于生产）
-        # dnsChallenge:
-        #   provider: cloudflare
-        #   delayBeforeCheck: 0
+        resolvers:
+          - "1.1.1.1:53"
+          - "1.0.0.1:53"
+
+    # Let's Encrypt 生产环境 - Cloudflare DNS 挑战（备用）
+    letsencrypt-cloudflare:
+      acme:
+        email: "admin@yourdomain.com"
+        storage: /config/acme-cloudflare.json
+        # DNS 挑战 - Cloudflare
+        dnsChallenge:
+          provider: cloudflare
+          delayBeforeCheck: 0
+          resolvers:
+            - "1.1.1.1:53"
+            - "1.0.0.1:53"
+
+    # Let's Encrypt 生产环境 - 阿里云 DNS 挑战（备用）
+    letsencrypt-aliyun:
+      acme:
+        email: "admin@yourdomain.com"
+        storage: /config/acme-aliyun.json
+        # DNS 挑战 - 阿里云
+        dnsChallenge:
+          provider: alidns
+          delayBeforeCheck: 0
+          resolvers:
+            - "223.5.5.5:53"
+            - "223.6.6.6:53"

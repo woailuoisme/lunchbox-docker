@@ -25,3 +25,4 @@ registry.ini
 
 certbot/conf/renewal/
 ssh/
+authelia/config/db.sqlite3
