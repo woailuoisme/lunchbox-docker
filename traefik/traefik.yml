@@ -35,6 +35,9 @@ entryPoints:
   # HTTPS 入口点
   websecure:
     address: ":443"
+    http2:
+      maxConcurrentStreams: 200
+    http3: {}
 
   # 监控指标入口点
   metrics:
@@ -64,6 +67,18 @@ ping:
 
 # TLS 证书配置 - 支持本地和 Let's Encrypt
 tls:
+#  options:
+#    modern:
+#      minVersion: 'VersionTLS13'
+#    intermediate:
+#      minVersion: 'VersionTLS12'
+#      cipherSuites:
+#        - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
+#        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+#        - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
+#        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+#        - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305'
+#        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
   # 证书存储配置
   stores:
     # 本地证书存储（开发环境）

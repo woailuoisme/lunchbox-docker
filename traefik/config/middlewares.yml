@@ -14,17 +14,27 @@ http:
         users:
           - "admin:$2y$10$example_hashed_password_here"
 
-    # Authelia 认证中间件
     authelia:
       forwardAuth:
-        address: "http://authelia:9091/api/verify"
+        address: 'http://authelia:9091/api/authz/forward-auth'
+        ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
+        ## configured in the Session Cookies section of the Authelia configuration.
+        # address: 'http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
-          - "Remote-User"
-          - "Remote-Groups"
-          - "Remote-Name"
-          - "Remote-Email"
-
+          - 'Remote-User'
+          - 'Remote-Groups'
+          - 'Remote-Email'
+          - 'Remote-Name'
+    authelia-basic:
+      forwardAuth:
+        address: 'http://authelia:9091/api/verify?auth=basic'
+        trustForwardHeader: true
+        authResponseHeaders:
+          - 'Remote-User'
+          - 'Remote-Groups'
+          - 'Remote-Email'
+          - 'Remote-Name'
     # 错误页面中间件
     error-pages:
       errors:
@@ -44,115 +54,6 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000
-
-    # 路径过滤中间件 - 屏蔽敏感文件和目录
-    path-filter:
-      chain:
-        middlewares:
-          - "block-hidden-files"
-          - "block-backup-files"
-          - "block-config-files"
-          - "block-db-files"
-          - "block-dev-files"
-          - "block-admin-paths"
-
-    # 屏蔽隐藏文件
-    block-hidden-files:
-      regexRedirect:
-        regex: "^/\\.(.*)"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽备份文件
-    block-backup-files:
-      regexRedirect:
-        regex: ".*\\.(bak|backup|old|orig|save|swp|swo|tmp|temp|cache|~)$"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽配置文件
-    block-config-files:
-      regexRedirect:
-        regex: ".*\\.(ini|conf|cnf|yml|yaml|toml|env|config)$"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽数据库文件
-    block-db-files:
-      regexRedirect:
-        regex: ".*\\.(sql|sqlite|db|mdb)$"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽开发文件
-    block-dev-files:
-      regexRedirect:
-        regex: "^/(vendor|node_modules|bower_components|\\.npm|\\.composer|\\.cargo)/"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽后台管理路径
-    block-admin-paths:
-      regexRedirect:
-        regex: "^/(phpmyadmin|pma|adminer|phpminiadmin|mysql|myadmin|wp-admin|wp-login\\.php|wp-config\\.php|xmlrpc\\.php)/"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽源代码文件
-    block-source-files:
-      regexRedirect:
-        regex: ".*\\.(py|rb|pl|sh|bash|java|class|jar)$"
-        replacement: "/404"
-        permanent: false
-
-    # 屏蔽常见漏洞探测路径
-    block-probe-paths:
-      regexRedirect:
-        regex: "^/(console|api/v1/pods|actuator|jolokia|hawtio|test|tests|spec|specs|debug|phpinfo\\.php|info\\.php)/"
-        replacement: "/404"
-        permanent: false
-
-    # 应用认证中间件 - 智能路径认证
-    # 对 /docs, /logs, /pulse 路径启用 Authelia 认证
-    # 其他路径无需认证
-    app-auth:
-      forwardAuth:
-        address: "http://authelia:9091/api/verify"
-        trustForwardHeader: true
-        authResponseHeaders:
-          - "Remote-User"
-          - "Remote-Groups"
-          - "Remote-Name"
-          - "Remote-Email"
-
-    # 请求头安全检查中间件
-    header-security:
-      headers:
-        customRequestHeaders:
-          X-Security-Check: "enabled"
-        customResponseHeaders:
-          X-Content-Type-Options: "nosniff"
-          X-Frame-Options: "DENY"
-          X-XSS-Protection: "1; mode=block"
-          Referrer-Policy: "strict-origin-when-cross-origin"
-
-    # 恶意 User-Agent 检测中间件
-    bad-user-agent:
-      headers:
-        customRequestHeaders:
-          X-User-Agent-Check: "enabled"
-
-    # SQL 注入检测中间件
-    sql-injection-check:
-      headers:
-        customRequestHeaders:
-          X-SQL-Injection-Check: "enabled"
-
-    # 路径遍历检测中间件
-    path-traversal-check:
-      headers:
-        customRequestHeaders:
-          X-Path-Traversal-Check: "enabled"
 
     # 速率限制中间件
     rate-limit:
@@ -202,13 +103,6 @@ http:
         memResponseBodyBytes: 2097152
         retryExpression: "IsNetworkError() && Attempts() <= 2"
 
-    # 请求超时中间件
-    timeout:
-      chain:
-        middlewares:
-          - "retry@file"
-        requestTimeout: "30s"
-
     # 跨域中间件
     cors:
       headers:
@@ -227,53 +121,8 @@ http:
           - "https://yourdomain.com"
         accessControlMaxAge: 600
 
-    # 压缩中间件 (替代 gzip)
-    compress:
-      compress: {}
-
-    # 基础认证中间件 (替代 auth-basic)
-    basic-auth:
-      basicAuth:
-        users:
-          - "admin:$2y$10$example_hashed_password_here"
-
     # 重写 URL 中间件
     rewrite-url:
       replacePathRegex:
         regex: "^/old/(.*)"
         replacement: "/new/$1"
-
-    # 自定义错误页面中间件
-    custom-errors:
-      errors:
-        status:
-          - "400-599"
-        service: "error-pages"
-        query: "/error/{status}"
-
-    # 完整安全中间件链
-    security-full:
-      chain:
-        middlewares:
-          - "rate-limit@file"
-          - "ip-whitelist@file"
-          - "security-headers@file"
-          - "path-filter@file"
-          - "header-security@file"
-
-    # Web 应用安全中间件链
-    web-security:
-      chain:
-        middlewares:
-          - "security-headers@file"
-          - "path-filter@file"
-          - "header-security@file"
-
-    # API 安全中间件链
-    api-security:
-      chain:
-        middlewares:
-          - "rate-limit@file"
-          - "cors@file"
-          - "security-headers@file"
-          - "header-security@file"

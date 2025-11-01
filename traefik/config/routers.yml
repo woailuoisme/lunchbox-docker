@@ -44,7 +44,9 @@ http:
       rule: "Host(`traefik.local`)"
       service: "api@internal"
       middlewares:
-        - "auth-basic"
+        # - "auth-basic"
+        - "error-pages"
+        # - "authelia-basic@file"
       tls: {}
 
     # 主应用路由（路径特定认证）
@@ -54,7 +56,6 @@ http:
       priority: 10
       service: "nginx"
       middlewares:
-        - "app-auth@file"
         - "gzip@file"
       rule: "Host(`app.local`) || Host(`www.app.local`)"
       tls: {}

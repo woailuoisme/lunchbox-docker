@@ -21,12 +21,14 @@ identity_validation:
 
 server:
   # 地址格式: tcp://[hostname]:[port]
-  address: 'tcp://0.0.0.0:9091'
+  address: "tcp://0.0.0.0:9091"
   # 必需的NGINX集成端点配置
   endpoints:
     authz:
       auth-request:
-        implementation: 'AuthRequest'
+        implementation: "AuthRequest"
+      forward-auth:
+        implementation: "ForwardAuth"
 
 # ==========================================================================
 # 日志配置
@@ -44,7 +46,7 @@ log:
 
 totp:
   # 发行者名称: 在 TOTP 应用中显示
-  issuer: 'haoxiaoguai.xyz'
+  issuer: "haoxiaoguai.xyz"
   # 算法: sha1, sha256, sha512
   algorithm: sha1
   # 有效期
@@ -97,33 +99,58 @@ password_policy:
 access_control:
   # 默认策略: bypass, one_factor, two_factor 或 deny
   default_policy: deny
-  
+
   # 访问控制规则
   rules:
     # 允许主域名完全访问
-    - domain: 'haoxiaoguai.xyz'
+    - domain: "haoxiaoguai.xyz"
       policy: bypass
-    
+
     # 无需验证的服务
-    - domain: 'portainer.haoxiaoguai.xyz'
+    - domain: "portainer.haoxiaoguai.xyz"
       policy: bypass
-    
+
     # 需要单次验证的服务
-    - domain: 'docs.haoxiaoguai.xyz'
+    - domain: "docs.haoxiaoguai.xyz"
       policy: one_factor
-    
+
       # 需要单次验证的服务
-    - domain: 'dozzle.haoxiaoguai.xyz'
+    - domain: "dozzle.haoxiaoguai.xyz"
       policy: one_factor
 
     # 需要双重验证的服务
-    - domain: 'admin.haoxiaoguai.xyz'
-      policy: two_factor
-    
-    # 需要双重验证的API和应用服务
-    - domain: 'app.haoxiaoguai.xyz'
+    - domain: "admin.haoxiaoguai.xyz"
       policy: two_factor
 
+    # 需要双重验证的API和应用服务
+    - domain: "app.haoxiaoguai.xyz"
+      policy: two_factor
+
+    # 本地开发环境 - 无需验证的服务
+    - domain: "auth.local"
+      policy: bypass
+
+    # 本地开发环境 - Traefik 仪表板需要单次验证
+    - domain: "traefik.local"
+      policy: one_factor
+
+    # 本地开发环境 - 其他服务需要单次验证
+    - domain: "app.local"
+      policy: one_factor
+    - domain: "search.local"
+      policy: one_factor
+    - domain: "portainer.local"
+      policy: one_factor
+    - domain: "logs.local"
+      policy: one_factor
+    - domain: "minio.local"
+      policy: one_factor
+    - domain: "error.local"
+      policy: one_factor
+    - domain: "registry.local"
+      policy: one_factor
+    - domain: "watchtower.local"
+      policy: one_factor
 
 # ==========================================================================
 # 会话配置
@@ -133,19 +160,22 @@ session:
   # 会话密钥
   secret: 481F2EN0L2RQJHT882OSM
   # 会话名称
-  name: 'authelia_session'
+  name: "authelia_session"
   # 不活动超时时间
-  inactivity: '5m'
+  inactivity: "5m"
   # 会话过期时间
-  expiration: '1h'
+  expiration: "1h"
   # 记住我功能
-  remember_me: '1M'
+  remember_me: "1M"
   # Cookie 配置
   cookies:
-    - domain: 'haoxiaoguai.xyz'
-      authelia_url: 'https://auth.haoxiaoguai.xyz'
-      default_redirection_url: 'https://rest.haoxiaoguai.xyz'
-  
+    - domain: "haoxiaoguai.xyz"
+      authelia_url: "https://auth.haoxiaoguai.xyz"
+      default_redirection_url: "https://rest.haoxiaoguai.xyz"
+    - domain: 'auth.local'
+      authelia_url: 'https://auth.local'
+      default_redirection_url: 'https://www.auth.lacal'
+
 # Redis 会话存储配置
 #  redis:
 #    host: redis
@@ -161,9 +191,9 @@ regulation:
   # 最大尝试次数
   max_retries: 3
   # 检测时间窗口
-  find_time: '2m'
+  find_time: "2m"
   # 禁止时间
-  ban_time: '5m'
+  ban_time: "5m"
 
 # ==========================================================================
 # 存储配置
@@ -172,7 +202,7 @@ regulation:
 storage:
   # 加密密钥: 用于加密存储中的敏感数据
   encryption_key: 481F2EN0L2RQJHT882OSM
-  
+
   # 本地 SQLite 存储 (适合单实例部署)
   local:
     path: /config/db.sqlite3
@@ -184,7 +214,7 @@ storage:
 notifier:
   # 禁用启动检查
   disable_startup_check: false
-  
+
   # 文件系统通知 (仅用于调试)
   filesystem:
     filename: /config/notification.txt
@@ -196,11 +226,11 @@ notifier:
 # NTP 配置 - 用于时间同步验证
 ntp:
   # NTP 服务器地址
-  address: 'udp://time.cloudflare.com:123'
+  address: "udp://time.cloudflare.com:123"
   # NTP 版本
   version: 4
   # 最大允许时间偏移
-  max_desync: '3 seconds'
+  max_desync: "3 seconds"
   # 禁用启动检查
   disable_startup_check: false
   # 禁用失败处理
