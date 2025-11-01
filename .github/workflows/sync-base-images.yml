@@ -56,12 +56,12 @@ jobs:
 
           declare -A DEFAULT_TAGS=(
             ["nginx"]="mainline-alpine,latest"
-            ["redis"]="alpine,latest"
-            ["postgres"]="16-alpine,17-alpine,latest"
+            ["redis"]="7.4-alpine,latest"
+            ["postgres"]="17.6-alpine,latest"
             ["mysql"]="8.0,latest"
-            ["node"]="lts-alpine,latest"
-            ["python"]="3.11,3.12,latest"
-            ["golang"]="1.21,1.22,latest"
+            ["node"]="22-alpine,latest"
+            ["python"]="3.12-alpine,latest"
+            ["golang"]="1.23-alpine,latest"
           )
 
           # 获取选中的镜像

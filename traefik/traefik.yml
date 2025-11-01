@@ -1,41 +1,29 @@
-# Traefik 3.5,3 配置文件
-# 优化版本 - 包含安全配置和性能优化
-# 适配 Lunchbox 项目服务
+# Traefik 3.5.4 配置文件
+# 适配 Lunchbox 项目 - 支持本地和 Let's Encrypt 证书源
 
-# API 和 Dashboard 配置
+# API 配置
 api:
   dashboard: true
-  insecure: false # 禁用不安全访问，通过路由访问
-  debug: false
+  insecure: false
 
 # 全局配置
 global:
-  checkNewVersion: false # 禁用版本检查，提高启动速度
-  sendAnonymousUsage: false # 禁用匿名使用统计
+  checkNewVersion: false
+  sendAnonymousUsage: false
 
 # 日志配置
 log:
   level: INFO
-  format: common # 使用更简洁的日志格式
-  # filePath: /var/log/traefik.log  # 可选：启用文件日志
-
-# 访问日志配置（可选）
-# accessLog:
-#   filePath: /var/log/traefik-access.log
-#   format: json  # 便于日志分析
-#   bufferingSize: 100  # 缓冲区大小
+  format: common
 
 # 指标监控配置
 metrics:
   prometheus:
     entryPoint: metrics
-    addRoutersLabels: true
-    addServicesLabels: true
-    buckets: [0.1, 0.3, 1.2, 5.0] # 自定义桶配置
-    manualRouting: true
 
+# 入口点配置
 entryPoints:
-  # HTTP 入口点 - 自动重定向到 HTTPS
+  # HTTP 入口点
   web:
     address: ":80"
     http:
@@ -43,35 +31,10 @@ entryPoints:
         entryPoint:
           to: websecure
           scheme: https
-          permanent: true
-      # 安全配置
-      middlewares:
-        - secureHeaders@file
-        - noFLoC@file
 
   # HTTPS 入口点
   websecure:
     address: ":443"
-    http:
-      # 启用 HTTP/2 和 HTTP/3
-      http2:
-        maxConcurrentStreams: 250 # 限制并发流数量
-      http3: {} # 启用 HTTP/3
-      # 中间件配置
-      middlewares:
-        - secureHeaders@file
-        - noFLoC@file
-        - gzip@file
-      # TLS 配置
-      tls:
-        certResolver: letsencrypt
-        # 安全配置
-        options: default
-        # 可选的域名配置
-        # domains:
-        #   - main: 'gaara.buzz'
-        #     sans:
-        #       - '*.gaara.buzz'
 
   # 监控指标入口点
   metrics:
@@ -82,97 +45,59 @@ entryPoints:
     address: ":5432"
   redis:
     address: ":6379"
-  rabbitmq:
-    address: ":5672"
-  pgbouncer:
-    address: ":6432"
 
 # 服务发现提供者配置
 providers:
   # Docker 提供者
   docker:
-    network: frontend
-    exposedByDefault: false # 默认不暴露容器
     endpoint: "unix:///var/run/docker.sock"
-    watch: true
-    swarmMode: false
+    exposedByDefault: false
 
   # 文件提供者
   file:
-    filename: /config/dynamic.yml
+    directory: /config
     watch: true
-    debugLogGeneratedTemplate: false # 禁用调试模板日志
-
-  # 可选的 Kubernetes 提供者
-  # kubernetesCRD:
-  #   allowCrossNamespace: false
-  #   allowExternalNameServices: false
-
-# 证书解析器配置
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: ailuoga166@gmail.com
-      storage: /config/acme.json
-      keyType: EC384 # 使用更安全的 ECC 密钥
-      # DNS 挑战配置（支持通配符证书）
-      dnsChallenge:
-        provider: aliyun
-        delayBeforeCheck: 0
-        resolvers:
-          - "1.1.1.1:53"
-          - "8.8.8.8:53"
-      # 重试配置
-      httpClient:
-        timeout: 30 # 超时时间
-      # 安全配置
-      preferredChain: "ISRG Root X1" # 优先使用 ISRG 根证书
-
-  # 备用证书解析器（Cloudflare）
-  cloudflare:
-    acme:
-      email: ailuoga166@gmail.com
-      storage: /config/acme_cloudflare.json
-      keyType: EC384
-      dnsChallenge:
-        provider: cloudflare
-        delayBeforeCheck: 0
-        resolvers:
-          - "1.1.1.1:53"
-          - "8.8.8.8:53"
-
-# TLS 选项配置
-tls:
-  options:
-    default:
-      minVersion: VersionTLS12
-      cipherSuites:
-        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
-        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256
-        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256
-        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
-        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-      sniStrict: true # 严格的 SNI 检查
-      curvePreferences:
-        - CurveP521
-        - CurveP384
-        - CurveP256
-
-# 实验性功能（可选）
-experimental:
-  kubernetesGateway: false
-  http3: true
 
 # Ping 健康检查端点
 ping:
   entryPoint: web
 
-# 服务器传输配置
-serversTransport:
-  insecureSkipVerify: false # 禁止跳过证书验证
-  maxIdleConnsPerHost: 2 # 限制空闲连接数
-  forwardingTimeouts:
-    dialTimeout: 30
-    responseHeaderTimeout: 0
-    idleConnTimeout: 90
+# TLS 证书配置 - 支持本地和 Let's Encrypt
+tls:
+  # 证书存储配置
+  stores:
+    # 本地证书存储（开发环境）
+    local:
+      defaultCertificate:
+        certFile: /config/certs/localhost.crt
+        keyFile: /config/certs/localhost.key
+
+    # Let's Encrypt 存储（生产环境）
+    letsencrypt:
+      defaultGeneratedCert:
+        resolver: letsencrypt
+        domain:
+          main: "*.jso.lol"
+
+  # 证书解析器配置
+  certificates:
+    # 本地开发证书
+    - certFile: /config/certs/localhost.crt
+      keyFile: /config/certs/localhost.key
+      stores:
+        - local
+
+  # ACME 配置 (Let's Encrypt)
+  certificatesResolvers:
+    # Let's Encrypt 生产环境
+    letsencrypt:
+      acme:
+        email: "admin@yourdomain.com"
+        storage: /config/acme.json
+        # HTTP 挑战
+        httpChallenge:
+          entryPoint: web
+        # 或者使用 DNS 挑战（推荐用于生产）
+        # dnsChallenge:
+        #   provider: cloudflare
+        #   delayBeforeCheck: 0

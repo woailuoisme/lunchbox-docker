@@ -23,85 +23,35 @@ services:
   #      - frontend
   #      - backend
   #
-  #  traefik:
-  #    container_name: traefik
-  #    image: traefik:3.5.3
-  #    restart: always
-  #    environment:
-  #      - TZ=${TIMEZONE}
-  #      - DOMAIN=${SITE_ADDRESS}
-  #    ports:
-  ##        - "80:80"
-  ##        - "443:443"
-  ##        - "8080:8080"
-  #      - "8082:8082"
-  ##      - "3306:3306"
-  ##      - "5432:5432"
-  ##      - "6379:6379"
-  #    volumes:
-  #      - /etc/localtime:/etc/localtime:ro
-  #      - /var/run/docker.sock:/var/run/docker.sock:ro
-  #      - ${CONFIG_PATH}traefik/config:/config
-  #      - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
-  #      - ${LOG_PATH}traefik:/traefik/logs
-  #    networks:
-  #      - frontend
-  ##    depends_on: ['errorPage','authelia']
-  #    depends_on: ['errorPage']
-
-  certbot:
-    build:
-      context: ./certbot
-      dockerfile: Dockerfile
-    container_name: certbot
+  traefik:
+    container_name: traefik
+    image: traefik:3.5.4
+    restart: always
     environment:
-      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
-      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
-      - EMAIL=${CERTBOT_EMAIL:-admin@haoxiaoguai.xyz} # 证书通知邮箱
-      - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
-      - TZ=Asia/Shanghai
+      - TZ=${TIMEZONE}
+      - DOMAIN=${SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+      - "8082:8082"
+    #        - "3306:3306"
+    #        - "5432:5432"
+    #        - "6379:6379"
     volumes:
-      - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
-      - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
-      - ${CONFIG_PATH}certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
-    #      - ${CONFIG_PATH}certbot/conf/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
-    restart: unless-stopped
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${CONFIG_PATH}traefik/config:/config
+      - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
+      - ${CONFIG_PATH}traefik/certs:/config/certs
+      - ${LOG_PATH}traefik:/traefik/logs
     networks:
       - frontend
       - backend
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
-
-  nginx:
-    build:
-      context: ./nginx
-      args:
-        - NGINX_VERSION=${NGINX_VERSION}
-        - CHANGE_SOURCE=${CHANGE_SOURCE}
-        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
-        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
-    container_name: nginx
-    restart: always
-    volumes:
-      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
-      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
-      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
-    ports:
-      - "${NGINX_HOST_HTTP_PORT}:80"
-      - "${NGINX_HOST_HTTPS_PORT}:443"
-      - "${NGINX_HOST_WSS_PORT}:8080"
-      - "45432:45432" # PostgresSQL 代理
-      - "46379:46379" # Redis 代理
+    #      depends_on: ['errorPage','authelia']
     depends_on:
-      certbot:
-        condition: service_started
       error-pages:
         condition: service_started
-      php-fpm:
-        condition: service_healthy
       minio:
         condition: service_healthy
       meilisearch:
@@ -114,9 +64,75 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-    networks:
-      - frontend
-      - backend
+
+  #  certbot:
+  #    build:
+  #      context: ./certbot
+  #      dockerfile: Dockerfile
+  #    container_name: certbot
+  #    environment:
+  #      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
+  #      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
+  #      - EMAIL=${CERTBOT_EMAIL:-admin@haoxiaoguai.xyz} # 证书通知邮箱
+  #      - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
+  #      - TZ=Asia/Shanghai
+  #    volumes:
+  #      - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
+  #      - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
+  #      - ${CONFIG_PATH}certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+  #    #      - ${CONFIG_PATH}certbot/conf/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
+  #    restart: unless-stopped
+  #    networks:
+  #      - frontend
+  #      - backend
+  #    labels:
+  #      - "com.centurylinklabs.watchtower.enable=true"
+  #
+  #  nginx:
+  #    build:
+  #      context: ./nginx
+  #      args:
+  #        - NGINX_VERSION=${NGINX_VERSION}
+  #        - CHANGE_SOURCE=${CHANGE_SOURCE}
+  #        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+  #        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+  #    container_name: nginx
+  #    restart: always
+  #    volumes:
+  #      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+  #      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+  #      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+  #      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
+  #      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
+  #      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
+  #    ports:
+  #      - "${NGINX_HOST_HTTP_PORT}:80"
+  #      - "${NGINX_HOST_HTTPS_PORT}:443"
+  #      - "${NGINX_HOST_WSS_PORT}:8080"
+  #      - "45432:45432" # PostgresSQL 代理
+  #      - "46379:46379" # Redis 代理
+  #    depends_on:
+  #      certbot:
+  #        condition: service_started
+  #      error-pages:
+  #        condition: service_started
+  #      php-fpm:
+  #        condition: service_healthy
+  #      minio:
+  #        condition: service_healthy
+  #      meilisearch:
+  #        condition: service_healthy
+  #      rabbitmq:
+  #        condition: service_healthy
+  #      redis:
+  #        condition: service_healthy
+  #      pgbouncer:
+  #        condition: service_healthy
+  #      postgres:
+  #        condition: service_healthy
+  #    networks:
+  #      - frontend
+  #      - backend
 
   php-fpm:
     build:
@@ -149,7 +165,7 @@ services:
 
   php-franken:
     build:
-      context: ./php-franken
+      context: php-franken-xdebug
     container_name: php-franken
     restart: always
     ports:
@@ -161,7 +177,7 @@ services:
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=docker
-      - APP_DEBUG=false
+      - APP_DEBUG=true
       - WATCH=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -326,33 +342,33 @@ services:
     networks:
       - backend
 
-#  portainer:
-#    container_name: portainer
-#    build:
-#      context: ./portainer
-#      dockerfile: Dockerfile
-#    restart: unless-stopped
-#    ports:
-#      # HTTPS端口（推荐优先使用）
-#      - "9443:9443"
-#      # HTTP端口（建议生产环境关闭或仅内网访问）
-#      - "8100:9000" # HTTP端口
-#      # 代理端口（用于Portainer Agent通信，集群部署必填）
-#      - "9100:8000"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#      - ${DATA_PATH}portainer_data:/data
-#      - ./portainer/secrets:/run/secrets:ro
-#    environment:
-#      - TZ=Asia/Shanghai
-#      - PORTAINER_ADMIN_PASSWORD=${PORTAINER_ADMIN_PASSWORD:-ChangeMe123!}
-#    networks:
-#      - frontend
-#      - backend
-#    depends_on:
-#      - watchtower
-#    labels:
-#      - "com.centurylinklabs.watchtower.enable=true"
+  #  portainer:
+  #    container_name: portainer
+  #    build:
+  #      context: ./portainer
+  #      dockerfile: Dockerfile
+  #    restart: unless-stopped
+  #    ports:
+  #      # HTTPS端口（推荐优先使用）
+  #      - "9443:9443"
+  #      # HTTP端口（建议生产环境关闭或仅内网访问）
+  #      - "8100:9000" # HTTP端口
+  #      # 代理端口（用于Portainer Agent通信，集群部署必填）
+  #      - "9100:8000"
+  #    volumes:
+  #      - /var/run/docker.sock:/var/run/docker.sock:ro
+  #      - ${DATA_PATH}portainer_data:/data
+  #      - ./portainer/secrets:/run/secrets:ro
+  #    environment:
+  #      - TZ=Asia/Shanghai
+  #      - PORTAINER_ADMIN_PASSWORD=${PORTAINER_ADMIN_PASSWORD:-ChangeMe123!}
+  #    networks:
+  #      - frontend
+  #      - backend
+  #    depends_on:
+  #      - watchtower
+  #    labels:
+  #      - "com.centurylinklabs.watchtower.enable=true"
 
   #  agent:
   #    container_name: portainer_agent
@@ -409,40 +425,40 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
-#  registry:
-#    container_name: registry
-#    image: registry:3
-#    restart: always
-#    volumes:
-#      - ${CONFIG_PATH}registry/registry-config.yml:/etc/docker/registry/config.yml
-#    ports:
-#      - "5000:5000"
-#    environment:
-#      - REGISTRY_HTTP_SECRET=lMNVjf20pKn86n8j7pUF1ijWtFDJ1BInPgEh8GjxyFA=
-#      # 完全禁用OpenTelemetry追踪和指标
-#      - OTEL_SDK_DISABLED=true
-#      - OTEL_TRACES_EXPORTER=none
-#      - OTEL_METRICS_EXPORTER=none
-#      - OTEL_LOGS_EXPORTER=none
-#      # 设置日志级别为info，避免debug日志
-#      - REGISTRY_LOG_LEVEL=info
-#    healthcheck:
-#      test:
-#        [
-#          "CMD",
-#          "wget",
-#          "--no-verbose",
-#          "--tries=1",
-#          "--spider",
-#          "http://localhost:5000/v2/",
-#        ]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 3
-#      start_period: 40s
-#    networks:
-#      - backend
-#      - frontend
+  #  registry:
+  #    container_name: registry
+  #    image: registry:3
+  #    restart: always
+  #    volumes:
+  #      - ${CONFIG_PATH}registry/registry-config.yml:/etc/docker/registry/config.yml
+  #    ports:
+  #      - "5000:5000"
+  #    environment:
+  #      - REGISTRY_HTTP_SECRET=lMNVjf20pKn86n8j7pUF1ijWtFDJ1BInPgEh8GjxyFA=
+  #      # 完全禁用OpenTelemetry追踪和指标
+  #      - OTEL_SDK_DISABLED=true
+  #      - OTEL_TRACES_EXPORTER=none
+  #      - OTEL_METRICS_EXPORTER=none
+  #      - OTEL_LOGS_EXPORTER=none
+  #      # 设置日志级别为info，避免debug日志
+  #      - REGISTRY_LOG_LEVEL=info
+  #    healthcheck:
+  #      test:
+  #        [
+  #          "CMD",
+  #          "wget",
+  #          "--no-verbose",
+  #          "--tries=1",
+  #          "--spider",
+  #          "http://localhost:5000/v2/",
+  #        ]
+  #      interval: 30s
+  #      timeout: 10s
+  #      retries: 3
+  #      start_period: 40s
+  #    networks:
+  #      - backend
+  #      - frontend
 
   watchtower:
     container_name: watchtower
@@ -467,7 +483,6 @@ services:
     networks:
       - frontend
       - backend
-
 #  autoheal:
 #    container_name: autoheal
 #    image: willfarrell/autoheal:latest

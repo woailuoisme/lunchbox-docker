@@ -2,7 +2,7 @@
 # PHP 基础镜像构建文件
 # ============================================================================
 
-FROM php:8.4-cli-alpine3.22
+FROM php:8.4.14-cli-alpine3.22
 LABEL maintainer="seaside <531773730@qq.com>"
 
 # ============================================================================
@@ -47,12 +47,13 @@ RUN set -eux; \
     mysql-dev \
     freetype-dev libjpeg-turbo-dev libpng-dev \
     oniguruma-dev libxml2-dev zlib-dev libzip-dev icu-dev \
+    libffi-dev \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache --virtual .pg-build postgresql-dev; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache --virtual .ldap-build openldap-dev; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
-    && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif \
+    && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif ffi \
     && if [ "$WITH_PG" = "true" ]; then docker-php-ext-install -j"$(nproc)" pdo_pgsql pgsql; fi \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-install -j"$(nproc)" ldap; fi \
     && pecl install redis && docker-php-ext-enable redis \

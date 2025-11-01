@@ -1,0 +1,203 @@
+# Traefik 动态配置文件
+# 适配 Traefik 3.5.4 - 本地和线上兼容版本
+
+# TCP 路由配置（数据库服务）
+tcp:
+  routers:
+    # PostgreSQL 数据库路由
+    postgres:
+      entryPoints:
+        - "postgres"
+      rule: "HostSNI(`*`)"
+      service: "postgres"
+
+    # Redis 缓存路由
+    redis:
+      entryPoints:
+        - "redis"
+      rule: "HostSNI(`*`)"
+      service: "redis"
+
+    # PgBouncer 连接池路由
+    pgbouncer:
+      entryPoints:
+        - "pgbouncer"
+      rule: "HostSNI(`*`)"
+      service: "pgbouncer"
+
+  services:
+    # PostgreSQL 服务
+    postgres:
+      loadBalancer:
+        servers:
+          - address: "postgres:5432"
+
+    # Redis 服务
+    redis:
+      loadBalancer:
+        servers:
+          - address: "redis:6379"
+
+    # PgBouncer 服务
+    pgbouncer:
+      loadBalancer:
+        servers:
+          - address: "pgbouncer:6432"
+
+# HTTP 路由配置
+http:
+  routers:
+    # Traefik Dashboard 路由
+    traefik-dashboard:
+      entryPoints:
+        - "websecure"
+      rule: "Host(`traefik.localhost`)"
+      service: "api@internal"
+      middlewares:
+        - "auth-basic"
+      tls: {}
+
+    # 主应用路由
+    app:
+      entryPoints:
+        - "websecure"
+      priority: 10
+      service: "nginx"
+      middlewares:
+        - "gzip@file"
+      rule: "Host(`localhost`) || Host(`www.localhost`)"
+      tls: {}
+
+    # 搜索服务路由
+    meilisearch:
+      entryPoints:
+        - "websecure"
+      priority: 10
+      service: "meilisearch"
+      middlewares:
+        - "gzip@file"
+      rule: "Host(`search.localhost`)"
+      tls: {}
+
+    # Portainer 容器管理
+    portainer:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "portainer"
+      rule: "Host(`portainer.localhost`)"
+      tls: {}
+
+    # Dozzle 日志查看器
+    dozzle:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "dozzle"
+      rule: "Host(`logs.localhost`)"
+      tls: {}
+
+    # MinIO 对象存储
+    minio:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "minio"
+      rule: "Host(`minio.localhost`)"
+      tls: {}
+
+    # 错误页面服务
+    error-pages:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "error-pages"
+      rule: "Host(`error.localhost`)"
+      tls: {}
+
+    # 容器注册表
+    registry:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "registry"
+      rule: "Host(`registry.localhost`)"
+      tls: {}
+
+    # Watchtower 自动更新
+    watchtower:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "watchtower"
+      rule: "Host(`watchtower.localhost`)"
+      tls: {}
+
+  services:
+    # Nginx Web 服务器
+    nginx:
+      loadBalancer:
+        servers:
+          - url: "http://nginx:80"
+        passHostHeader: true
+
+    # Portainer 服务
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://portainer:9000"
+        passHostHeader: true
+
+    # Dozzle 服务
+    dozzle:
+      loadBalancer:
+        servers:
+          - url: "http://dozzle:8080"
+        passHostHeader: true
+
+    # MeiliSearch 服务
+    meilisearch:
+      loadBalancer:
+        servers:
+          - url: "http://meilisearch:7700"
+        passHostHeader: true
+
+    # MinIO 服务
+    minio:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9001"
+        passHostHeader: true
+
+    # 错误页面服务
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"
+        passHostHeader: true
+
+    # 容器注册表服务
+    registry:
+      loadBalancer:
+        servers:
+          - url: "http://registry:5000"
+        passHostHeader: true
+
+    # Watchtower 服务
+    watchtower:
+      loadBalancer:
+        servers:
+          - url: "http://watchtower:8080"
+        passHostHeader: true
+
+  # 中间件配置
+  middlewares:
+    # Gzip 压缩中间件
+    gzip:
+      compress: {}
+
+    # 基础认证中间件
+    auth-basic:
+      basicAuth:
+        users:
+          - "admin:$2y$10$example_hashed_password_here"

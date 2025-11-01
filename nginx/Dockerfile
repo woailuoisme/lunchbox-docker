@@ -1,4 +1,4 @@
-ARG NGINX_VERSION=1.29-alpine
+ARG NGINX_VERSION=1.29.3-alpine
 FROM nginx:${NGINX_VERSION}
 
 LABEL maintainer="seaside <seaside@qq.com>"

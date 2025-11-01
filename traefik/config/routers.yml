@@ -1,0 +1,115 @@
+# Traefik 路由配置文件
+# 适配 Traefik 3.5.4 - 本地和线上兼容版本
+
+# TCP 路由配置（数据库服务）
+tcp:
+  routers:
+    # PostgreSQL 数据库路由
+    postgres:
+      entryPoints:
+        - "postgres"
+      rule: "HostSNI(`*`)"
+      service: "postgres"
+
+    # Redis 缓存路由
+    redis:
+      entryPoints:
+        - "redis"
+      rule: "HostSNI(`*`)"
+      service: "redis"
+
+    # PgBouncer 连接池路由
+    pgbouncer:
+      entryPoints:
+        - "pgbouncer"
+      rule: "HostSNI(`*`)"
+      service: "pgbouncer"
+
+# HTTP 路由配置
+http:
+  routers:
+    # Traefik Dashboard 路由
+    traefik-dashboard:
+      entryPoints:
+        - "websecure"
+      rule: "Host(`traefik.local`)"
+      service: "api@internal"
+      middlewares:
+        - "auth-basic"
+      tls: {}
+
+    # 主应用路由
+    app:
+      entryPoints:
+        - "websecure"
+      priority: 10
+      service: "nginx"
+      middlewares:
+        - "gzip@file"
+      rule: "Host(`app.local`) || Host(`www.app.local`)"
+      tls: {}
+
+    # 搜索服务路由
+    meilisearch:
+      entryPoints:
+        - "websecure"
+      priority: 10
+      service: "meilisearch"
+      middlewares:
+        - "gzip@file"
+      rule: "Host(`search.local`)"
+      tls: {}
+
+    # Portainer 容器管理
+    portainer:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "portainer"
+      rule: "Host(`portainer.local`)"
+      tls: {}
+
+    # Dozzle 日志查看器
+    dozzle:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "dozzle"
+      rule: "Host(`logs.local`)"
+      tls: {}
+
+    # MinIO 对象存储
+    minio:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "minio"
+      rule: "Host(`minio.local`)"
+      tls: {}
+
+    # 错误页面服务
+    error-pages:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "error-pages"
+      rule: "Host(`error.local`)"
+      tls: {}
+
+    # 容器注册表
+    registry:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "registry"
+      rule: "Host(`registry.local`)"
+      tls: {}
+
+    # Watchtower 自动更新
+    watchtower:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "watchtower"
+      rule: "Host(`watchtower.local`)"
+      tls: {}
