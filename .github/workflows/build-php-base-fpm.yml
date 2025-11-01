@@ -1,4 +1,4 @@
-name: Build PHP Base Multi-arch Images
+name: Build PHP Base fpm Multi-arch Images
 
 # 手动触发构建php-base多平台镜像
 on:
@@ -59,14 +59,14 @@ jobs:
           cd php-base-fpm && docker buildx build \
             --platform linux/amd64,linux/arm64 \
             --build-arg CHANGE_SOURCE=false \
-            --tag $REGISTRY_DOCKERHUB/php-base:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_DOCKERHUB/php-base:$PHP_VERSION-fpm-$TAG \
-            --tag $REGISTRY_DOCKERHUB/php-base:latest \
-            --tag $REGISTRY_TENCENT/php-base:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base:$PHP_VERSION-fpm-$TAG \
-            --tag $REGISTRY_TENCENT/php-base:latest \
-            --tag $REGISTRY_REDHAT/php-base:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_REDHAT/php-base:$PHP_VERSION-fpm-$TAG \
-            --tag $REGISTRY_REDHAT/php-base:latest \
+            --tag $REGISTRY_DOCKERHUB/php-base-fpm:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_DOCKERHUB/php-base-fpm:$PHP_VERSION-fpm-$TAG \
+            --tag $REGISTRY_DOCKERHUB/php-base-fpm:latest \
+            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-fpm-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm:latest \
+            --tag $REGISTRY_REDHAT/php-base-fpm:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_REDHAT/php-base-fpm:$PHP_VERSION-fpm-$TAG \
+            --tag $REGISTRY_REDHAT/php-base-fpm:latest \
             --push \
             .
