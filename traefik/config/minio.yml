@@ -1,0 +1,22 @@
+# MinIO 对象存储配置
+# 文件: traefik/config/minio.yml
+
+# HTTP 服务配置
+http:
+  services:
+    # MinIO 服务
+    minio:
+      loadBalancer:
+        servers:
+          - url: "http://minio:9001"
+        passHostHeader: true
+
+  routers:
+    # MinIO 对象存储路由
+    minio:
+      entryPoints:
+        - "websecure"
+      priority: 20
+      service: "minio"
+      rule: "Host(`minio.local.test`)"
+      tls: {}

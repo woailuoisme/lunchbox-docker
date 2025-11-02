@@ -1,0 +1,24 @@
+# MeiliSearch 搜索服务配置
+# 文件: traefik/config/meilisearch.yml
+
+# HTTP 服务配置
+http:
+  services:
+    # MeiliSearch 服务
+    meilisearch:
+      loadBalancer:
+        servers:
+          - url: "http://meilisearch:7700"
+        passHostHeader: true
+
+  routers:
+    # 搜索服务路由
+    meilisearch:
+      entryPoints:
+        - "websecure"
+      priority: 10
+      service: "meilisearch"
+      middlewares:
+        - "gzip@file"
+      rule: "Host(`search.local.test`)"
+      tls: {}

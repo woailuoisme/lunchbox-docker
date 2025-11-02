@@ -1,0 +1,22 @@
+# 错误页面服务配置
+# 文件: traefik/config/error-pages.yml
+
+# HTTP 服务配置
+http:
+  services:
+    # 错误页面服务
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"
+        passHostHeader: true
+
+  routers:
+    # 错误页面服务路由
+    error-pages:
+      entryPoints:
+        - "websecure"
+      priority: 30
+      service: "error-pages"
+      rule: "Host(`error.local.test`)"
+      tls: {}

@@ -26,18 +26,18 @@ entryPoints:
   # HTTP 入口点
   web:
     address: ":80"
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
+#    http:
+#      redirections:
+#        entryPoint:
+#          to: websecure
+#          scheme: https
 
   # HTTPS 入口点
   websecure:
     address: ":443"
     http2:
       maxConcurrentStreams: 200
-    http3: {}
+#    http3: {}
 
   # 监控指标入口点
   metrics:

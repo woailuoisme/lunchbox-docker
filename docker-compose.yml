@@ -19,7 +19,15 @@ services:
       - "REDIS_PASSWORD=${REDIS_PASSWORD}"
       - "RESEND_API_KEY=${RESEND_API_KEY}"
     healthcheck:
-      test: [ "CMD","wget","--no-verbose","--tries=1","--spider","http://localhost:9091/api/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9091/api/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -29,7 +37,6 @@ services:
     networks:
       - frontend
       - backend
-
 
   #  dnsmasq:
   #    container_name: dnsmasq
@@ -71,7 +78,7 @@ services:
       - frontend
       - backend
     healthcheck:
-      test: [ "CMD", "wget", "-q", "-O-", "http://localhost:80/ping" ]
+      test: ["CMD", "wget", "-q", "-O-", "http://localhost:80/ping"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -198,16 +205,21 @@ services:
     container_name: php-franken
     restart: always
     ports:
-      - "8001:8001"
+      - "8801:8001"
       - "2019:2019"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
-      - APP_ENV=docker
+      - APP_ENV=dev
       - APP_DEBUG=true
       - WATCH=true
+#      - OCTANE_HTTPS=true
+#      - OCTANE_HTTP_REDIRECT=true
+#      - APP_URL=https://app.local.test
+#      - ASSET_URL=https://app.local.test
+      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -441,8 +453,8 @@ services:
     image: tarampampam/error-pages:3.7
     restart: unless-stopped
     environment:
-      - "TEMPLATE_NAME=app-down"
-      - "SHOW_DETAILS=true"
+      - TEMPLATE_NAME=app-down
+      - SHOW_DETAILS=true
       - TZ=Asia/Shanghai
     ports:
       - "8580:8080"

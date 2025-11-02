@@ -14,7 +14,8 @@ ENV APP_PATH=/var/www/lunchbox \
     OCTANE_POLL=false \
     OCTANE_HTTPS=false \
     OCTANE_HTTP_REDIRECT=false \
-    OCTANE_LOG_LEVEL=info
+    OCTANE_LOG_LEVEL=info \
+    PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 # 复制PHP配置
 #COPY config/php.ini $PHP_INI_DIR/conf.d/99-custom.ini

@@ -1,0 +1,22 @@
+# Authelia 认证服务配置
+# 文件: traefik/config/authelia.yml
+
+# HTTP 服务配置
+http:
+  services:
+    # Authelia 认证服务
+    authelia:
+      loadBalancer:
+        servers:
+          - url: "http://authelia:9091"
+        passHostHeader: true
+
+  routers:
+    # Authelia 认证服务路由
+    authelia:
+      entryPoints:
+        - "websecure"
+      priority: 5
+      service: "authelia"
+      rule: "Host(`auth.local.test`)"
+      tls: {}

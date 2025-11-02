@@ -1,0 +1,16 @@
+# Traefik Dashboard 配置
+# 文件: traefik/config/traefik-dashboard.yml
+
+# HTTP 服务配置
+http:
+  routers:
+    # Traefik Dashboard 路由
+    traefik-dashboard:
+      entryPoints:
+        - "websecure"
+      rule: "Host(`traefik.local.test`)"
+      service: "api@internal"
+      middlewares:
+        - "auth-basic"
+        - "error-pages"
+      tls: {}
