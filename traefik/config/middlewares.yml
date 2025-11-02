@@ -1,6 +1,4 @@
 # Traefik 中间件配置文件
-# 适配 Traefik 3.5.4 - 本地和线上兼容版本
-
 # HTTP 中间件配置
 http:
   middlewares:
@@ -12,29 +10,32 @@ http:
     auth-basic:
       basicAuth:
         users:
-          - "admin:$2y$10$example_hashed_password_here"
+          - "admin:$apr1$ShWo1lcN$D/MCo4mqE7s7PUbYcQ7aN/"
+          - "develop:$apr1$DLyS08cZ$43xtmCdA1M/C6XfJYkYkA."
+          - "test:$apr1$jEVx4VE2$G4aW6Db416K5gjiUMLDex."
+          - "guest:$apr1$k2ij9/p6$6HTiZ6EuY4.K5k5UeKVgi1"
 
     authelia:
       forwardAuth:
-        address: 'http://authelia:9091/api/authz/forward-auth'
+        address: "http://authelia:9091/api/authz/forward-auth"
         ## The following commented line is for configuring the Authelia URL in the proxy. We strongly suggest this is
         ## configured in the Session Cookies section of the Authelia configuration.
         # address: 'http://authelia:9091/api/authz/forward-auth?authelia_url=https%3A%2F%2Fauth.example.com%2F'
         trustForwardHeader: true
         authResponseHeaders:
-          - 'Remote-User'
-          - 'Remote-Groups'
-          - 'Remote-Email'
-          - 'Remote-Name'
+          - "Remote-User"
+          - "Remote-Groups"
+          - "Remote-Email"
+          - "Remote-Name"
     authelia-basic:
       forwardAuth:
-        address: 'http://authelia:9091/api/verify?auth=basic'
+        address: "http://authelia:9091/api/verify?auth=basic"
         trustForwardHeader: true
         authResponseHeaders:
-          - 'Remote-User'
-          - 'Remote-Groups'
-          - 'Remote-Email'
-          - 'Remote-Name'
+          - "Remote-User"
+          - "Remote-Groups"
+          - "Remote-Email"
+          - "Remote-Name"
     # 错误页面中间件
     error-pages:
       errors:

@@ -127,29 +127,31 @@ access_control:
       policy: two_factor
 
     # 本地开发环境 - 无需验证的服务
-    - domain: "auth.local"
+    - domain: "auth.local.test"
       policy: bypass
 
     # 本地开发环境 - Traefik 仪表板需要单次验证
-    - domain: "traefik.local"
+    - domain: "traefik.local.test"
       policy: one_factor
 
     # 本地开发环境 - 其他服务需要单次验证
-    - domain: "app.local"
+    - domain: "app.local.test"
       policy: one_factor
-    - domain: "search.local"
+    - domain: "www.app.local.test"
       policy: one_factor
-    - domain: "portainer.local"
+    - domain: "search.local.test"
       policy: one_factor
-    - domain: "logs.local"
+    - domain: "portainer.local.test"
       policy: one_factor
-    - domain: "minio.local"
+    - domain: "dozzle.local.test"
       policy: one_factor
-    - domain: "error.local"
+    - domain: "minio.local.test"
       policy: one_factor
-    - domain: "registry.local"
+    - domain: "error.local.test"
       policy: one_factor
-    - domain: "watchtower.local"
+    - domain: "registry.local.test"
+      policy: one_factor
+    - domain: "watchtower.local.test"
       policy: one_factor
 
 # ==========================================================================
@@ -169,12 +171,9 @@ session:
   remember_me: "1M"
   # Cookie 配置
   cookies:
-    - domain: "haoxiaoguai.xyz"
-      authelia_url: "https://auth.haoxiaoguai.xyz"
-      default_redirection_url: "https://rest.haoxiaoguai.xyz"
-    - domain: 'auth.local'
-      authelia_url: 'https://auth.local'
-      default_redirection_url: 'https://www.auth.lacal'
+    - domain: "local.test"
+      authelia_url: "https://auth.local.test"
+      default_redirection_url: "https://app.local.test"
 
 # Redis 会话存储配置
 #  redis:
@@ -213,11 +212,19 @@ storage:
 
 notifier:
   # 禁用启动检查
-  disable_startup_check: false
+  disable_startup_check: true
 
-  # 文件系统通知 (仅用于调试)
-  filesystem:
-    filename: /config/notification.txt
+  # Resend 邮件服务配置
+  smtp:
+    # Resend SMTP 服务器地址 (新格式)
+    address: "submission://smtp.resend.com:587"
+    # 连接超时时间
+    timeout: "5s"
+    # 发件人邮箱地址 (必须使用 Resend 验证的域名)
+    sender: "noreply@haoxiaoguai.xyz"
+    # Resend API 密钥 (通过环境变量设置)
+    username: "resend"
+    password: "${RESEND_API_KEY}"
 
 # ==========================================================================
 # 高级配置

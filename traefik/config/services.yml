@@ -31,12 +31,6 @@ http:
         servers:
           - url: "http://authelia:9091"
         passHostHeader: true
-    # Nginx Web 服务器
-    nginx:
-      loadBalancer:
-        servers:
-          - url: "http://nginx:80"
-        passHostHeader: true
 
     # Portainer 服务
     portainer:
@@ -80,9 +74,3 @@ http:
           - url: "http://registry:5000"
         passHostHeader: true
 
-    # Watchtower 服务
-    watchtower:
-      loadBalancer:
-        servers:
-          - url: "http://watchtower:8080"
-        passHostHeader: true

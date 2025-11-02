@@ -13,15 +13,40 @@ services:
     ports:
       - "9091:9091"
     volumes:
-          - ${CONFIG_PATH}authelia/config:/config
+      - ${CONFIG_PATH}authelia/config:/config
     environment:
       - "TZ=${TIMEZONE}"
       - "REDIS_PASSWORD=${REDIS_PASSWORD}"
+      - "RESEND_API_KEY=${RESEND_API_KEY}"
+    healthcheck:
+      test: [ "CMD","wget","--no-verbose","--tries=1","--spider","http://localhost:9091/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       - redis
     networks:
       - frontend
       - backend
+
+
+  #  dnsmasq:
+  #    container_name: dnsmasq
+  #    image: jpillora/dnsmasq
+  #    platform: linux/amd64
+  #    restart: always
+  #    ports:
+  #      - "53:53/udp"
+  #      # - "8080:8080"
+  #    volumes:
+  #      - ${CONFIG_PATH}dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf
+  #    environment:
+  #      - HTTP_USER=user
+  #      - HTTP_PASS=12345
+  #    networks:
+  #      - frontend
+  #      - backend
 
   traefik:
     container_name: traefik
@@ -36,7 +61,6 @@ services:
       - "8080:8080"
       - "45432:5432"
       - "46379:6379"
-    # - "43306:3306"
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -46,6 +70,12 @@ services:
     networks:
       - frontend
       - backend
+    healthcheck:
+      test: [ "CMD", "wget", "-q", "-O-", "http://localhost:80/ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       error-pages:
         condition: service_started
@@ -388,8 +418,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "8180:8080"
-    #    environment:
-    #      - DOZZLE_AUTH_PROVIDER=simple
+    environment:
+      - DOZZLE_THEME=dark
     #    secrets:
     #        - source: users
     #          target: /data/users.yml
