@@ -18,7 +18,7 @@ http:
         - "websecure"
       priority: 20
       service: "dozzle"
-      rule: "Host(`dozzle.local.test`)"
+      rule: 'Host(`dozzle.{{ env "DOMAIN" }}`)'
       middlewares:
         - "authelia@file"
       tls: {}

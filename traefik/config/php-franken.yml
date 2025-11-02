@@ -18,7 +18,7 @@ http:
         - "websecure"
       priority: 15
       service: "php-franken"
-      rule: "Host(`app.local.test`)"
+      rule: 'Host(`app.{{ env "DOMAIN" }}`)'
       middlewares:
         - "authelia@file"
       tls: {}
@@ -29,6 +29,6 @@ http:
         - "web"
       priority: 5
       service: "php-franken"
-      rule: "Host(`app.local.test`)"
+      rule: 'Host(`app.{{ env "DOMAIN" }}`)'
       middlewares:
         - "https-redirect"

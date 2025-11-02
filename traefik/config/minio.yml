@@ -18,5 +18,5 @@ http:
         - "websecure"
       priority: 20
       service: "minio"
-      rule: "Host(`minio.local.test`)"
+      rule: 'Host(`minio.{{ env "DOMAIN" }}`)'
       tls: {}

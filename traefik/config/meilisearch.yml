@@ -20,5 +20,5 @@ http:
       service: "meilisearch"
       middlewares:
         - "gzip@file"
-      rule: "Host(`search.local.test`)"
+      rule: 'Host(`search.{{ env "DOMAIN" }}`)'
       tls: {}

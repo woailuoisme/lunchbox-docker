@@ -18,5 +18,5 @@ http:
         - "websecure"
       priority: 5
       service: "authelia"
-      rule: "Host(`auth.local.test`)"
+      rule: 'Host(`auth.{{ env "DOMAIN" }}`)'
       tls: {}

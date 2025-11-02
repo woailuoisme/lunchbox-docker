@@ -18,5 +18,5 @@ http:
         - "websecure"
       priority: 20
       service: "portainer"
-      rule: "Host(`portainer.local.test`)"
+      rule: 'Host(`portainer.{{ env "DOMAIN" }}`)'
       tls: {}

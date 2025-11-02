@@ -15,9 +15,11 @@ services:
     volumes:
       - ${CONFIG_PATH}authelia/config:/config
     environment:
-      - "TZ=${TIMEZONE}"
-      - "REDIS_PASSWORD=${REDIS_PASSWORD}"
-      - "RESEND_API_KEY=${RESEND_API_KEY}"
+      - X_AUTHELIA_CONFIG_FILTERS=template
+      - TZ=${TIMEZONE}
+      - DOMAIN=${SITE_ADDRESS}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - RESEND_API_KEY=${RESEND_API_KEY}
     healthcheck:
       test:
         [
@@ -215,10 +217,10 @@ services:
       - APP_ENV=dev
       - APP_DEBUG=true
       - WATCH=true
-#      - OCTANE_HTTPS=true
-#      - OCTANE_HTTP_REDIRECT=true
-#      - APP_URL=https://app.local.test
-#      - ASSET_URL=https://app.local.test
+      #      - OCTANE_HTTPS=true
+      #      - OCTANE_HTTP_REDIRECT=true
+      #      - APP_URL=https://app.local.test
+      #      - ASSET_URL=https://app.local.test
       - PYTHONWARNINGS=ignore:pkg_resources is deprecated
     extra_hosts:
       - "host.docker.internal:host-gateway"

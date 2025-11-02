@@ -8,7 +8,7 @@ http:
     traefik-dashboard:
       entryPoints:
         - "websecure"
-      rule: "Host(`traefik.local.test`)"
+      rule: 'Host(`traefik.{{ env "DOMAIN" }}`)'
       service: "api@internal"
       middlewares:
         - "auth-basic"

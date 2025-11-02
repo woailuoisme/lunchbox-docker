@@ -18,5 +18,5 @@ http:
         - "websecure"
       priority: 30
       service: "registry"
-      rule: "Host(`registry.local.test`)"
+      rule: 'Host(`registry.{{ env "DOMAIN" }}`)'
       tls: {}
