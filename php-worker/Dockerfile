@@ -4,7 +4,9 @@ ENV APP_PATH=/var/www/lunchbox \
     APP_ENV=docker \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
-# 复制 supercronic 配置和启动脚本
-COPY laravel-cron /usr/local/etc/laravel-cron
+
 
 CMD APP_ENV=${APP_ENV} php ${APP_PATH}/artisan queue:work
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD ps aux | grep -q "[p]hp.*artisan queue:work" || exit 1

@@ -262,6 +262,13 @@ services:
     networks:
       - backend
       - frontend
+    depends_on:
+      php-schedule:
+        condition: service_healthy
+      php-worker:
+        condition: service_healthy
+      php-reverb:
+        condition: service_healthy
 
   postgres:
     build:

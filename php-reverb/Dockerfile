@@ -5,3 +5,6 @@ ENV APP_PATH=/var/www/lunchbox \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 CMD APP_ENV=${APP_ENV} php ${APP_PATH}/artisan reverb:start
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD ps aux | grep -q "[p]hp.*artisan reverb:start" || exit 1
