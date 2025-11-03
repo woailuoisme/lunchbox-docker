@@ -33,7 +33,7 @@ RUN set -eux; \
     bash postgresql17-client \
     icu-libs libzip libxml2 oniguruma zlib \
     freetype libjpeg-turbo libpng \
-    tzdata \
+    tzdata libffi \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache libpq; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache openldap; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache rabbitmq-c; fi \
