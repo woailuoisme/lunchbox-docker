@@ -95,57 +95,16 @@ access_control:
 
   # 访问控制规则
   rules:
-    # 允许主域名完全访问
-    - domain: '{{ env "DOMAIN" }}'
-      policy: bypass
-
-    # 无需验证的服务
-    - domain: 'portainer.{{ env "DOMAIN" }}'
-      policy: bypass
-
-    # 需要单次验证的服务
-    - domain: 'docs.{{ env "DOMAIN" }}'
-      policy: one_factor
-
-      # 需要单次验证的服务
-    - domain: 'dozzle.{{ env "DOMAIN" }}'
-      policy: one_factor
-
-    # 需要双重验证的服务
-    - domain: 'admin.{{ env "DOMAIN" }}'
-      policy: two_factor
-
-    # 需要双重验证的API和应用服务
-    - domain: 'app.{{ env "DOMAIN" }}'
-      policy: two_factor
-
-    # 本地开发环境 - 无需验证的服务
-    - domain: 'auth.{{ env "DOMAIN" }}'
-      policy: bypass
-
-    # 本地开发环境 - Traefik 仪表板需要单次验证
-    - domain: 'traefik.{{ env "DOMAIN" }}'
-      policy: one_factor
-
-    # 本地开发环境 - 其他服务需要单次验证
-    - domain: 'app.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'www.app.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'search.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'portainer.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'dozzle.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'minio.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'error.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'registry.{{ env "DOMAIN" }}'
-      policy: one_factor
-    - domain: 'watchtower.{{ env "DOMAIN" }}'
-      policy: one_factor
+    # bypass rule
+    - domain:
+        - 'auth.{{ env "DOMAIN" }}'
+      policy: 'bypass'
+    # two actor login - catch all
+    - domain:
+        - '{{ env "DOMAIN" }}'
+        - '*.{{ env "DOMAIN" }}'
+#      policy: 'two_factor'
+      policy: 'one_factor'
 
 # ==========================================================================
 # 会话配置
@@ -211,13 +170,21 @@ notifier:
   smtp:
     # Resend SMTP 服务器地址 (新格式)
     address: "submission://smtp.resend.com:587"
-    # 连接超时时间
-    timeout: "5s"
+    username: '{{ env "RESEND_USER_NAME" }}'
+    # Resend API 密钥 (通过环境变量设置)
+    password: '{{ env "RESEND_API_KEY" }}'
     # 发件人邮箱地址 (必须使用 Resend 验证的域名)
     sender: "noreply@haoxiaoguai.xyz"
-    # Resend API 密钥 (通过环境变量设置)
-    username: "resend"
-    password: "${RESEND_API_KEY}"
+    identifier: '{{ env "DOMAIN" }}'
+    subject: "[Authelia] {title}"
+
+#  smtp:
+#    address: 'smtp://{{ env "EMAIL_SERVER" }}:{{ env "EMAIL_SERVER_PORT" }}'
+#    username: '{{ env "EMAIL_SERVER_USER" }}'
+#    password: '{{ env "EMAIL_SERVER_PASSWORD" }}'
+#    sender: 'Authelia <{{ env "EMAIL_FROM" }}>'
+#    identifier: '{{ env "DOMAIN" }}'
+#    subject: "[Authelia] {title}"
 
 # ==========================================================================
 # 高级配置

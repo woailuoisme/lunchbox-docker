@@ -200,6 +200,41 @@ services:
       - minio
       - meilisearch
       - rabbitmq
+  php-worker:
+    build:
+      context: php-worker
+    container_name: php-worker
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+
+  php-schedule:
+    build:
+      context: php-schedule
+    container_name: php-schedule
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+
+  php-reverb:
+    build:
+      context: php-reverb
+    container_name: php-reverb
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
 
   php-franken:
     build:

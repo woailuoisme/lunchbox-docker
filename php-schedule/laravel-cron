@@ -1,0 +1,5 @@
+# 每分钟执行调度器
+* * * * * /usr/local/bin/php /var/www/lunchbox/artisan schedule:run
+
+# 每天凌晨清理调度器缓存（每天0点执行）
+0 0 * * * /usr/local/bin/php /var/www/lunchbox/artisan schedule:clear-cache
