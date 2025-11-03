@@ -53,7 +53,8 @@ RUN set -eux; \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
-    && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif ffi \
+    && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif \
+    && docker-php-ext-install -j"$(nproc)" ffi \
     && if [ "$WITH_PG" = "true" ]; then docker-php-ext-install -j"$(nproc)" pdo_pgsql pgsql; fi \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-install -j"$(nproc)" ldap; fi \
     && pecl install redis && docker-php-ext-enable redis \
@@ -87,7 +88,8 @@ RUN deluser www-data 2>/dev/null || true \
     /usr/local/etc/php/conf.d \
     && touch /var/log/php/error.log /var/log/php/slow.log \
     && chmod 644 /var/log/php/error.log /var/log/php/slow.log \
-    && chmod 755 /var/log/php /var/run/php
+    && chmod 755 /var/log/php /var/run/php \
+    && php -m | grep -i ffi || echo "FFI extension not loaded"
 
 # ============================================================================
 # 工作目录设置
