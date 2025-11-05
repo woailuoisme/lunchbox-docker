@@ -22,16 +22,12 @@ RUN mkdir -p /usr/local/etc/supervisord.d
 COPY config/*.ini /usr/local/etc/php/conf.d/
 COPY config/www.conf /usr/local/etc/php-fpm.d/www.conf
 
-# 复制 Supervisor 配置
-COPY supervisor/*.conf /usr/local/etc/supervisord.d/
+# 复制 Supervisor 主配置文件
 COPY supervisord.conf /usr/local/etc/supervisord.conf
-
-# 复制 supercronic 配置和启动脚本
-COPY laravel-cron /usr/local/etc/laravel-cron
-COPY start-container.sh /usr/local/bin/start-container.sh
+COPY startup.sh /usr/local/bin/startup.sh
 
 # 设置启动脚本执行权限（php-base 已设置用户和目录权限）
-RUN chmod +x /usr/local/bin/start-container.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
 # 创建 PHP-FPM 日志目录
 RUN mkdir -p /var/log/php-fpm \
@@ -47,10 +43,10 @@ RUN mkdir -p /home/www-data/.ssh \
     && chown www-data:www-data /home/www-data/.ssh/known_hosts \
     && chmod 644 /home/www-data/.ssh/known_hosts
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
     CMD sh -c 'SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong'
 
 WORKDIR /var/www
 # php-fpm  laravel-reverb laravel-octande-frankenphp
 EXPOSE 9000 8080 8001
-ENTRYPOINT ["/usr/local/bin/start-container.sh"]
+ENTRYPOINT ["/usr/local/bin/startup.sh"]

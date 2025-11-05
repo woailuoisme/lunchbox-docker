@@ -21,13 +21,13 @@ log_error() {
     echo -e "${RED}[${timestamp}] [HEALTH_ERROR]${NC} $1" >&2
 }
 
-# 检查 FrankenPHP 进程
-check_frankenphp_process() {
-    if pgrep -f "frankenphp" > /dev/null; then
-        log_info "FrankenPHP 进程运行正常"
+# 检查 Supervisor 进程
+check_supervisor_process() {
+    if pgrep -f "supervisord" > /dev/null; then
+        log_info "Supervisor 进程运行正常"
         return 0
     else
-        log_error "FrankenPHP 进程未运行"
+        log_error "Supervisor 进程未运行"
         return 1
     fi
 }
@@ -81,7 +81,7 @@ main_health_check() {
     fi
 
     # 检查进程
-    if ! check_frankenphp_process; then
+    if ! check_supervisor_process; then
         exit_code=1
     fi
 

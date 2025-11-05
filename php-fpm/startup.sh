@@ -5,6 +5,8 @@ set -euo pipefail
 readonly WWWUSER=${WWWUSER:-33}
 readonly WWWGROUP=${WWWGROUP:-33}
 readonly ENABLE_SUPERVISOR=${ENABLE_SUPERVISOR:-true}
+readonly APP_PATH=${APP_PATH:-/var/www/lunchbox}
+readonly APP_ENV=${APP_ENV:-docker}
 
 log() {
     echo "[$(date '+%H:%M:%S')] $*" >&2
@@ -73,6 +75,79 @@ setup_environment() {
         fi
 
     log "环境设置完成"
+}
+
+# 生成 laravel-cron 文件
+generate_cron_file() {
+    local cron_file="/usr/local/etc/laravel-cron"
+
+    log "生成 Laravel cron 配置文件..."
+
+    cat > "${cron_file}" << EOF
+# 每分钟执行调度器
+* * * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:run
+
+# 每天凌晨清理调度器缓存（每天0点执行）
+0 0 * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:clear-cache
+EOF
+
+    chmod +x "${cron_file}"
+    log "已生成 cron 配置文件: ${cron_file}"
+}
+
+# 动态生成 supervisor 配置文件
+generate_supervisor_config() {
+    local config_dir="/usr/local/etc/supervisord.d"
+    local pulse_config="${config_dir}/pulse.check.conf"
+    local scheduler_config="${config_dir}/scheduler.conf"
+    local worker_config="${config_dir}/worker.conf"
+
+    log "生成 supervisor 配置文件..."
+
+    # 生成 pulse.check.conf
+    cat > "${pulse_config}" << EOF
+[program:pulse]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = /usr/local/bin/php ${APP_PATH}/artisan pulse:check
+autostart = true
+autorestart = true
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+
+    # 生成 scheduler.conf
+    cat > "${scheduler_config}" << EOF
+[program:scheduler]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = supercronic -overlapping /usr/local/etc/laravel-cron
+autostart = true
+autorestart = true
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+
+    # 生成 worker.conf
+    cat > "${worker_config}" << EOF
+[program:worker]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = /usr/local/bin/php ${APP_PATH}/artisan queue:work --sleep=3 --tries=3 --max-time=3600
+autostart = true
+autorestart = true
+numprocs = 2
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+
+    log "已生成 supervisor 配置文件: pulse.check.conf, scheduler.conf, worker.conf"
 }
 
 # 确保用户和组ID一致性
@@ -217,6 +292,11 @@ main() {
     # 检查是否有supervisord配置，如果ENABLE_SUPERVISOR为true且有配置则在后台启动supervisord
     if [ "$ENABLE_SUPERVISOR" = "true" ] && has_supervisord_config; then
         log "启动supervisord管理后台进程..."
+
+        # 生成必要的配置文件
+        generate_cron_file
+        generate_supervisor_config
+
         start_supervisord_background
     fi
 

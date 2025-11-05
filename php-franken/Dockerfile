@@ -29,12 +29,11 @@ RUN chmod +x /usr/local/bin/startup.sh
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh
 RUN chmod +x /usr/local/bin/healthcheck.sh
 
-# 复制 Supervisor 配置
-COPY supervisor/*.conf /usr/local/etc/supervisord.d/
-COPY supervisord.conf /usr/local/etc/supervisord.conf
+# 创建必要的 supervisor 目录
+RUN mkdir -p /usr/local/etc/supervisord.d
 
-# 复制 supercronic 配置和启动脚本
-COPY laravel-cron /usr/local/etc/laravel-cron
+# 复制 Supervisor 主配置文件
+COPY supervisord.conf /usr/local/etc/supervisord.conf
 
 # 健康检测配置
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \

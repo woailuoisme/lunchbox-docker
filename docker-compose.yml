@@ -239,6 +239,7 @@ services:
   php-franken:
     build:
       context: php-franken-xdebug
+#      context: php-franken
     container_name: php-franken
     restart: always
     ports:

@@ -1,12 +1,35 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-simple-cli
-FROM jiaoio/php-base-simple-cli
+FROM quay.io/jiaoio/php-base-simple-cli
+
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=docker \
+    CHANGE_SOURCE=true \
+    ENABLE_SUPERVISOR=true \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
-# 使用简单的 while 循环每分钟执行 Laravel 调度器
-CMD ["/bin/sh", "-c", "while true; do /usr/local/bin/php /var/www/lunchbox/artisan schedule:run; sleep 60; done"]
+RUN if [ ${CHANGE_SOURCE} = true ]; then \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
+    fi
+
+# 安装 supervisor 和 supercronic (Alpine Linux)
+RUN apk update && apk add --no-cache supervisor supercronic && \
+    rm -rf /var/cache/apk/*
+
+# 创建必要的 supervisor 目录
+RUN mkdir -p /var/log/supervisor && \
+    mkdir -p /var/run && \
+    mkdir -p /usr/local/etc/supervisord.d
+
+# 复制 supervisor 主配置文件
+COPY supervisord.conf /usr/local/etc/supervisord.conf
+
+# 复制启动脚本
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
+
+# 使用 startup.sh 脚本启动服务
+CMD ["/usr/local/bin/startup.sh"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD ps aux | grep -q "[p]hp.*artisan schedule:run" || exit 1
+    CMD ps aux | grep -q "[s]upervisord" || exit 1
