@@ -64,6 +64,7 @@ services:
     environment:
       - TZ=${TIMEZONE}
       - DOMAIN=${SITE_ADDRESS}
+      - ENABLE_HTTPS=${ENABLE_HTTPS:-true}
     ports:
       - "80:80"
       - "443:443"
@@ -239,7 +240,7 @@ services:
   php-franken:
     build:
       context: php-franken-xdebug
-#      context: php-franken
+    #      context: php-franken
     container_name: php-franken
     restart: always
     ports:
@@ -252,6 +253,7 @@ services:
       - APP_PATH=${APP_PATH}
       - APP_ENV=dev
       - APP_DEBUG=true
+      - ENABLE_SUPERVISOR=false
       - WATCH=true
       #      - OCTANE_HTTPS=true
       #      - OCTANE_HTTP_REDIRECT=true
@@ -545,6 +547,44 @@ services:
   #    networks:
   #      - backend
   #      - frontend
+  pgsql:
+    build:
+      context: ./pgsql
+      dockerfile: Dockerfile
+    container_name: lunchbox_db
+    restart: always
+    environment:
+      POSTGRES_DB: lunchbox
+      POSTGRES_USER: devuser
+      POSTGRES_PASSWORD: mysecretpassword
+    ports:
+      - "25432:5432" # 映射端口
+    volumes:
+      - ${DATA_PATH}pgsql}:/var/lib/postgresql/data # 数据持久化
+    networks:
+      - backend
+#  ntfy:
+#    image: binwiederhier/ntfy
+#    container_name: ntfy
+#    command:
+#      - serve
+#    environment:
+#      - TZ=Asia/Shanghai    # optional: set desired timezone
+#    volumes:
+#      - ${DATA_PATH}ntfy:/var/cache/ntfy
+#      - ${CONFIG_PATH}ntfy:/etc/ntfy
+#    ports:
+#      - "5580:80"
+#    healthcheck: # optional: remember to adapt the host:port to your environment
+#      test: [ "CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1" ]
+#      interval: 60s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+#    restart: unless-stopped
+#    init: true # needed, if healthcheck is used. Prevents zombie processes
+#    networks:
+#      - backend
 
   watchtower:
     container_name: watchtower

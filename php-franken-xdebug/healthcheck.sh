@@ -21,14 +21,20 @@ log_error() {
     echo -e "${RED}[${timestamp}] [HEALTH_ERROR]${NC} $1" >&2
 }
 
-# 检查 Supervisor 进程
+# 检查 Supervisor 进程（仅在启用时检查）
 check_supervisor_process() {
-    if pgrep -f "supervisord" > /dev/null; then
-        log_info "Supervisor 进程运行正常"
-        return 0
+    # 检查是否启用了 Supervisor
+    if [ "${ENABLE_SUPERVISOR:-false}" = "true" ]; then
+        if pgrep -f "supervisord" > /dev/null; then
+            log_info "Supervisor 进程运行正常"
+            return 0
+        else
+            log_error "Supervisor 进程未运行"
+            return 1
+        fi
     else
-        log_error "Supervisor 进程未运行"
-        return 1
+        log_info "Supervisor 未启用，跳过检查"
+        return 0
     fi
 }
 
@@ -68,19 +74,19 @@ check_app_directory() {
     return 0
 }
 
-
 # 主健康检查函数
 main_health_check() {
     local exit_code=0
 
     log_info "开始健康检查..."
+    log_info "ENABLE_SUPERVISOR=${ENABLE_SUPERVISOR:-false}"
 
     # 检查应用目录
     if ! check_app_directory; then
         exit_code=1
     fi
 
-    # 检查进程
+    # 检查 Supervisor 进程（根据环境变量决定）
     if ! check_supervisor_process; then
         exit_code=1
     fi

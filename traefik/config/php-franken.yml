@@ -4,7 +4,6 @@
 # HTTP 服务配置
 http:
   services:
-    # PHP Franken 服务
     php-franken:
       loadBalancer:
         servers:
@@ -12,23 +11,10 @@ http:
         passHostHeader: true
 
   routers:
-    # PHP Franken 应用服务路由
     php-franken:
       entryPoints:
         - "websecure"
       priority: 15
       service: "php-franken"
       rule: 'Host(`app.{{ env "DOMAIN" }}`)'
-      middlewares:
-        - "authelia@file"
       tls: {}
-
-    # PHP Franken HTTP 重定向路由
-    php-franken-redirect:
-      entryPoints:
-        - "web"
-      priority: 5
-      service: "php-franken"
-      rule: 'Host(`app.{{ env "DOMAIN" }}`)'
-      middlewares:
-        - "https-redirect"

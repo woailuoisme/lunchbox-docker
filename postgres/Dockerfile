@@ -17,7 +17,7 @@ RUN mkdir -p /etc/postgresql && \
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]
 
 # 健康检查
-HEALTHCHECK --interval=30s --timeout=10s --retries=5 --start-period=60s \
+HEALTHCHECK --interval=60s --timeout=10s --retries=5 --start-period=60s \
     CMD pg_isready -d ${POSTGRES_DB:-postgres} -U ${POSTGRES_USER:-postgres}
 
 EXPOSE 5432

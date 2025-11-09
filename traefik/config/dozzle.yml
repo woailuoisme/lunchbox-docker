@@ -1,5 +1,6 @@
 # Dozzle 日志查看器配置
 # 文件: traefik/config/dozzle.yml
+# 支持通过 ENABLE_HTTPS 环境变量动态选择入口点
 
 # HTTP 服务配置
 http:

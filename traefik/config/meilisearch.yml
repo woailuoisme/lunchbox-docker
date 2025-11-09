@@ -4,7 +4,6 @@
 # HTTP 服务配置
 http:
   services:
-    # MeiliSearch 服务
     meilisearch:
       loadBalancer:
         servers:
@@ -12,7 +11,6 @@ http:
         passHostHeader: true
 
   routers:
-    # 搜索服务路由
     meilisearch:
       entryPoints:
         - "websecure"

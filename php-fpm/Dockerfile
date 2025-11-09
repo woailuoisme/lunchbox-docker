@@ -10,13 +10,34 @@ ARG WWWGROUP=33
 
 LABEL service="php-fpm"
 
+ENV APP_ENABLE=true \
+    APP_PATH=/var/www/lunchbox \
+    APP_PORT=8001 \
+    APP_ENV=docker \
+    APP_DEBUG=true \
+    WORKER_QUEUE=default,broadcasting,order,mail,sms \
+    ENABLE_SUPERVISOR=true \
+    ENABLE_WORKER=true \
+    ENABLE_SCHEDULE=true \
+    ENABLE_REVERB=false \
+    ENABLE_HORIZON=false \
+    ENABLE_PULSE=false \
+    PYTHONWARNINGS="ignore:pkg_resources is deprecated"
+
 #RUN pecl install xdebug-3.2.1 \
 #    && docker-php-ext-enable xdebug
 ## 配置 Xdebug
 #COPY config/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
 
 # 创建 Supervisor 配置目录（php-base 已创建基础目录）
-RUN mkdir -p /usr/local/etc/supervisord.d
+RUN mkdir -p /usr/local/etc/supervisord.d \
+    && chown -R www-data:www-data /usr/local/etc/supervisord.d \
+    && chmod 755 /usr/local/etc/supervisord.d
+
+# 创建 cron 配置目录
+RUN mkdir -p /usr/local/etc \
+    && chown -R www-data:www-data /usr/local/etc \
+    && chmod 755 /usr/local/etc
 
 # 复制 PHP 配置（php-base 已创建 /usr/local/etc/php/conf.d 目录）
 COPY config/*.ini /usr/local/etc/php/conf.d/
