@@ -18,6 +18,8 @@ RUN apk update && \
     apk add --no-cache \
     build-base \
     git \
+    clang \
+    llvm \
     postgresql-dev \
     postgis \
     geos \
@@ -27,13 +29,13 @@ RUN apk update && \
 WORKDIR /tmp
 RUN git clone --branch v0.8.1 https://github.com/pgvector/pgvector.git && \
     cd pgvector && \
-    make && \
+    make OPTFLAGS="" && \
     make install && \
     cd .. && \
     rm -rf pgvector
 
 # 清理构建工具以减小镜像大小
-RUN apk del --purge build-base git && \
+RUN apk del --purge build-base git clang llvm && \
     rm -rf /var/cache/apk/*
 
 # 复制初始化脚本
