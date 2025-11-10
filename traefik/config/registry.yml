@@ -1,7 +1,6 @@
 # 容器注册表配置
 # 文件: traefik/config/registry.yml
 
-# HTTP 服务配置
 http:
   services:
     registry:

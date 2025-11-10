@@ -30,7 +30,7 @@ RUN set -eux; \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
     fi; \
     apk add --no-cache \
-    bash postgresql17-client \
+    bash gettext postgresql17-client \
     icu-libs libzip libxml2 oniguruma zlib \
     freetype libjpeg-turbo libpng \
     tzdata libffi \

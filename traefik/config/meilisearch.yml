@@ -1,7 +1,6 @@
 # MeiliSearch 搜索服务配置
 # 文件: traefik/config/meilisearch.yml
 
-# HTTP 服务配置
 http:
   services:
     meilisearch:

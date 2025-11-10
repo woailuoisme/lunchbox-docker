@@ -1,7 +1,6 @@
 # PHP Franken 应用服务配置
 # 文件: traefik/config/php-franken.yml
 
-# HTTP 服务配置
 http:
   services:
     php-franken:

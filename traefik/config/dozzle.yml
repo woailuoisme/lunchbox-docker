@@ -5,7 +5,6 @@
 # HTTP 服务配置
 http:
   services:
-    # Dozzle 服务
     dozzle:
       loadBalancer:
         servers:
@@ -13,7 +12,6 @@ http:
         passHostHeader: true
 
   routers:
-    # Dozzle 日志查看器路由
     dozzle:
       entryPoints:
         - "websecure"

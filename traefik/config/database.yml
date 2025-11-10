@@ -4,42 +4,26 @@
 # TCP 服务配置（数据库服务）
 tcp:
   services:
-    # PostgreSQL 服务
     postgres:
       loadBalancer:
         servers:
           - address: "postgres:5432"
 
-    # Redis 缓存服务
     redis:
       loadBalancer:
         servers:
           - address: "redis:6379"
 
-    # PgBouncer 连接池服务
-    pgbouncer:
-      loadBalancer:
-        servers:
-          - address: "pgbouncer:6432"
-
   routers:
-    # PostgreSQL 数据库路由
     postgres:
       entryPoints:
         - "postgres"
       rule: "HostSNI(`*`)"
       service: "postgres"
 
-    # Redis 缓存路由
     redis:
       entryPoints:
         - "redis"
       rule: "HostSNI(`*`)"
       service: "redis"
 
-    # PgBouncer 连接池路由（已注释）
-    # pgbouncer:
-    #   entryPoints:
-    #     - "pgbouncer"
-    #   rule: "HostSNI(`*`)"
-    #   service: "pgbouncer"

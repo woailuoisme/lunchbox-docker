@@ -4,7 +4,6 @@
 # HTTP 服务配置
 http:
   services:
-    # Authelia 认证服务
     authelia:
       loadBalancer:
         servers:
@@ -12,7 +11,6 @@ http:
         passHostHeader: true
 
   routers:
-    # Authelia 认证服务路由
     authelia:
       entryPoints:
         - "websecure"

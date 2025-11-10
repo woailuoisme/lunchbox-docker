@@ -57,38 +57,106 @@ services:
   #      - frontend
   #      - backend
 
-  traefik:
-    container_name: traefik
-    image: traefik:3.5.4
-    restart: always
+#  traefik:
+#    container_name: traefik
+#    image: traefik:3.5.4
+#    restart: always
+#    environment:
+#      - TZ=${TIMEZONE}
+#      - DOMAIN=${SITE_ADDRESS}
+#      - ENABLE_HTTPS=${ENABLE_HTTPS:-true}
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#      - "8080:8080"
+#      - "45432:5432"
+#      - "46379:6379"
+#    volumes:
+#      - /etc/localtime:/etc/localtime:ro
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      - ${CONFIG_PATH}traefik/config:/config
+#      - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
+#      - ${LOG_PATH}traefik:/traefik/logs
+#    networks:
+#      - frontend
+#      - backend
+#    healthcheck:
+#      test: ["CMD", "wget", "-q", "-O-", "http://localhost:80/ping"]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+#    depends_on:
+#      error-pages:
+#        condition: service_started
+#      minio:
+#        condition: service_healthy
+#      meilisearch:
+#        condition: service_healthy
+#      rabbitmq:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#      pgbouncer:
+#        condition: service_healthy
+#      postgres:
+#        condition: service_healthy
+#      authelia:
+#        condition: service_started
+
+  certbot:
+    build:
+      context: ./certbot
+      dockerfile: Dockerfile
+    container_name: certbot
     environment:
-      - TZ=${TIMEZONE}
-      - DOMAIN=${SITE_ADDRESS}
-      - ENABLE_HTTPS=${ENABLE_HTTPS:-true}
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
-      - "45432:5432"
-      - "46379:6379"
+      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
+      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
+      - EMAIL=${CERTBOT_EMAIL:-admin@haoxiaoguai.xyz} # 证书通知邮箱
+      - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
+      - TZ=Asia/Shanghai
     volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${CONFIG_PATH}traefik/config:/config
-      - ${CONFIG_PATH}traefik/traefik.yml:/etc/traefik/traefik.yml
-      - ${LOG_PATH}traefik:/traefik/logs
+      - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
+      - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
+      - ${CONFIG_PATH}certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
+    #      - ${CONFIG_PATH}certbot/conf/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
+    restart: unless-stopped
     networks:
       - frontend
       - backend
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O-", "http://localhost:80/ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  nginx:
+    build:
+      context: ./nginx
+      args:
+        - NGINX_VERSION=${NGINX_VERSION}
+        - CHANGE_SOURCE=${CHANGE_SOURCE}
+        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
+        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
+    container_name: nginx
+    restart: always
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
+      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
+      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
+      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
+    ports:
+      - "${NGINX_HOST_HTTP_PORT}:80"
+      - "${NGINX_HOST_HTTPS_PORT}:443"
+      - "${NGINX_HOST_WSS_PORT}:8080"
+      - "45432:45432" # PostgresSQL 代理
+      - "46379:46379" # Redis 代理
     depends_on:
+      certbot:
+        condition: service_started
       error-pages:
         condition: service_started
+      php-fpm:
+        condition: service_healthy
       minio:
         condition: service_healthy
       meilisearch:
@@ -101,77 +169,9 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy
-      authelia:
-        condition: service_started
-
-  #  certbot:
-  #    build:
-  #      context: ./certbot
-  #      dockerfile: Dockerfile
-  #    container_name: certbot
-  #    environment:
-  #      - DNS_PROVIDER=${CERTBOT_DNS_PROVIDER:-aliyun} # DNS 提供商: cloudflare 或 aliyun
-  #      - DOMAIN=${DOMAIN:-haoxiaoguai.xyz} # 主域名
-  #      - EMAIL=${CERTBOT_EMAIL:-admin@haoxiaoguai.xyz} # 证书通知邮箱
-  #      - RENEW_INTERVAL=${CERTBOT_RENEW_INTERVAL:-43200} # 续签检查间隔(秒)
-  #      - TZ=Asia/Shanghai
-  #    volumes:
-  #      - ${CONFIG_PATH}certbot/conf:/etc/letsencrypt
-  #      - ${DATA_PATH}certbot/logs:/var/log/letsencrypt
-  #      - ${CONFIG_PATH}certbot/conf/aliyun.ini:/etc/letsencrypt/aliyun.ini:ro
-  #    #      - ${CONFIG_PATH}certbot/conf/cloudflare.ini:/etc/letsencrypt/cloudflare.ini:ro
-  #    restart: unless-stopped
-  #    networks:
-  #      - frontend
-  #      - backend
-  #    labels:
-  #      - "com.centurylinklabs.watchtower.enable=true"
-  #
-  #  nginx:
-  #    build:
-  #      context: ./nginx
-  #      args:
-  #        - NGINX_VERSION=${NGINX_VERSION}
-  #        - CHANGE_SOURCE=${CHANGE_SOURCE}
-  #        - PHP_UPSTREAM_CONTAINER=${NGINX_PHP_UPSTREAM_CONTAINER}
-  #        - PHP_UPSTREAM_PORT=${NGINX_PHP_UPSTREAM_PORT}
-  #    container_name: nginx
-  #    restart: always
-  #    volumes:
-  #      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-  #      - ${NGINX_HOST_LOG_PATH}:/var/log/nginx
-  #      - ${NGINX_SITES_PATH}:/etc/nginx/sites-available
-  #      - ${CONFIG_PATH}nginx/nginx.conf:/etc/nginx/nginx.conf
-  #      - ${CONFIG_PATH}nginx/snippets/:/etc/nginx/snippets/
-  #      - ${CONFIG_PATH}certbot/conf:/etc/nginx/ssl
-  #    ports:
-  #      - "${NGINX_HOST_HTTP_PORT}:80"
-  #      - "${NGINX_HOST_HTTPS_PORT}:443"
-  #      - "${NGINX_HOST_WSS_PORT}:8080"
-  #      - "45432:45432" # PostgresSQL 代理
-  #      - "46379:46379" # Redis 代理
-  #    depends_on:
-  #      certbot:
-  #        condition: service_started
-  #      error-pages:
-  #        condition: service_started
-  #      php-fpm:
-  #        condition: service_healthy
-  #      minio:
-  #        condition: service_healthy
-  #      meilisearch:
-  #        condition: service_healthy
-  #      rabbitmq:
-  #        condition: service_healthy
-  #      redis:
-  #        condition: service_healthy
-  #      pgbouncer:
-  #        condition: service_healthy
-  #      postgres:
-  #        condition: service_healthy
-  #    networks:
-  #      - frontend
-  #      - backend
+    networks:
+      - frontend
+      - backend
 
   php-fpm:
     build:

@@ -12,7 +12,7 @@ ARG WITH_XDEBUG=true
 RUN set -eux; \
     if [ "$WITH_XDEBUG" = "true" ]; then \
     apk add --no-cache --virtual .xdebug-build \
-    autoconf gcc g++ make pkgconfig linux-headers && \
+    autoconf gcc g++ make pkgconfig linux-headers gettext && \
     pecl install xdebug && docker-php-ext-enable xdebug && \
     pecl clear-cache && \
     rm -rf /tmp/pear /tmp/pecl-build && \

@@ -12,20 +12,32 @@ ARG PHP_UPSTREAM_PORT=9000
 # 用户和组ID配置，默认值为33(www-data)
 ARG WWWUSER=33
 ARG WWWGROUP=33
+
+ENV DOMIAN=jso.lol \
+    PROXY_FPM=app-fpm,rest,php-fpm:9000 \
+    PROXY_FRNAKEN=app-octane,dev,php-franken:8001 \
+    PROXY_REVERB=app-reverb,ws,php-reverb:8080 \
+    PROXY_DOZZLE=dozzle,dozzle,dozzle:8080 \
+    PROXY_MINIO=minio,mos,minio:9000 \
+    PROXY_MINIO_CONSOLE=minio-console,mo,minio:9001 \
+    PROXY_MILISEARCH=meilisearch,search,meilisearch:7700 \
+    PROXY_RABBITMQ=rabbitmq,mq,rabbitmq:15672
+
 # 设置时区和包源
 RUN if [ ${CHANGE_SOURCE} = true ]; then \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
-fi && \
+    fi && \
     apk update && \
     apk upgrade && \
     apk add --no-cache \
-        logrotate \
-        openssl \
-        bash \
-        tzdata \
-        apache2-utils \
-        yq \
-        curl && \
+    gettext \
+    logrotate \
+    openssl \
+    bash \
+    tzdata \
+    apache2-utils \
+    yq \
+    curl && \
     ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
     touch /var/log/messages
@@ -55,9 +67,8 @@ COPY users.yml /etc/nginx/auth/
 COPY scripts/init-users.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/init-users.sh
 
-# 设置PHP upstream配置并移除默认配置
-RUN echo "upstream php-upstream { server ${PHP_UPSTREAM_CONTAINER}:${PHP_UPSTREAM_PORT}; }" > /etc/nginx/conf.d/upstream.conf && \
-    rm -f /etc/nginx/conf.d/default.conf
+# 移除默认配置
+RUN rm -f /etc/nginx/conf.d/default.conf
 
 # 复制启动脚本并设置执行权限
 COPY scripts/startup.sh /opt/startup.sh
@@ -69,7 +80,7 @@ RUN sed -i 's/\r//g' /opt/startup.sh && \
 #   状态码0 : 健康（找到nginx进程）
 #   状态码1 : 不健康（未找到nginx进程）
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD pgrep nginx -l > /dev/null || exit 1
+    CMD pgrep nginx -l > /dev/null || exit 1
 
 # 容器启动命令和端口暴露
 CMD ["/bin/bash", "/opt/startup.sh"]
