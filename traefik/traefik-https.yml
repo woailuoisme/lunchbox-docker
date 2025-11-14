@@ -1,5 +1,5 @@
-# Traefik 3.5.4 配置文件
-# 适配 Lunchbox 项目 - 支持通过环境变量控制 HTTPS
+# Traefik 3.5.4 配置文件 - HTTPS 启用版本
+# 适配 Lunchbox 项目
 
 # API 配置
 api:
@@ -23,25 +23,20 @@ metrics:
 
 # 入口点配置
 entryPoints:
-  # HTTP 入口点（始终启用）
+  # HTTP 入口点 - 自动重定向到 HTTPS
   web:
     address: ":80"
-{{ if eq (env "ENABLE_HTTPS") "true" }}
-    # 启用 HTTPS 时自动重定向到 HTTPS
     http:
       redirections:
         entryPoint:
           to: websecure
           scheme: https
-{{ end }}
 
-{{ if eq (env "ENABLE_HTTPS") "true" }}
-  # HTTPS 入口点（仅在启用 HTTPS 时配置）
+  # HTTPS 入口点
   websecure:
     address: ":443"
     http2:
       maxConcurrentStreams: 200
-{{ end }}
 
   # 监控指标入口点
   metrics:
@@ -55,11 +50,6 @@ entryPoints:
 
 # 服务发现提供者配置
 providers:
-  # Docker 提供者（已禁用，避免与文件配置冲突）
-  # docker:
-  #   endpoint: "unix:///var/run/docker.sock"
-  #   exposedByDefault: false
-
   # 文件提供者
   file:
     directory: /config
@@ -69,21 +59,8 @@ providers:
 ping:
   entryPoint: web
 
-{{ if eq (env "ENABLE_HTTPS") "true" }}
-# TLS 证书配置 - 支持本地和 Let's Encrypt（仅在启用 HTTPS 时配置）
+# TLS 证书配置 - 支持本地和 Let's Encrypt
 tls:
-  #  options:
-  #    modern:
-  #      minVersion: 'VersionTLS13'
-  #    intermediate:
-  #      minVersion: 'VersionTLS12'
-  #      cipherSuites:
-  #        - 'TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256'
-  #        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
-  #        - 'TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384'
-  #        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
-  #        - 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305'
-  #        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
   # 证书存储配置
   stores:
     # 本地证书存储（开发环境）
@@ -146,4 +123,3 @@ tls:
           resolvers:
             - "223.5.5.5:53"
             - "223.6.6.6:53"
-{{ end }}

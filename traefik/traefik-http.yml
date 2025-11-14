@@ -1,0 +1,45 @@
+api:
+  dashboard: true
+  insecure: false
+
+# 全局配置
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+# 日志配置
+log:
+  level: INFO
+  format: common
+
+# 指标监控配置
+metrics:
+  prometheus:
+    entryPoint: metrics
+
+# 入口点配置
+entryPoints:
+  # HTTP 入口点（仅 HTTP）
+  web:
+    address: ":80"
+
+  # 监控指标入口点
+  metrics:
+    address: ":8082"
+
+  # 数据库服务入口点
+  postgres:
+    address: ":5432"
+  redis:
+    address: ":6379"
+
+# 服务发现提供者配置
+providers:
+  # 文件提供者
+  file:
+    directory: /config
+    watch: true
+
+# Ping 健康检查端点
+ping:
+  entryPoint: web

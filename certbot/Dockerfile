@@ -12,11 +12,11 @@ RUN mkdir -p /etc/letsencrypt
 WORKDIR /opt/certbot
 
 # 复制启动脚本和健康检查脚本
-COPY start.sh /opt/certbot/start.sh
+COPY startup.sh /opt/certbot/startup.sh
 COPY healthcheck.sh /opt/certbot/healthcheck.sh
-RUN chmod +x /opt/certbot/start.sh /opt/certbot/healthcheck.sh
+RUN chmod +x /opt/certbot/startup.sh /opt/certbot/healthcheck.sh
 
 # 设置入口点和健康检查
-ENTRYPOINT ["/opt/certbot/start.sh"]
+ENTRYPOINT ["/opt/certbot/startup.sh"]
 #HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 #    CMD /opt/certbot/healthcheck.sh check

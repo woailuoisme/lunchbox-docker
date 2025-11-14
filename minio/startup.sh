@@ -40,6 +40,7 @@ log "INFO" "  - MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}"
 log "INFO" "  - MINIO_DATA_PATH: ${MINIO_DATA_PATH:-/data}"
 log "INFO" "  - MINIO_CONSOLE_PORT: ${MINIO_CONSOLE_PORT:-9001}"
 log "INFO" "  - MINIO_BUCKETS: ${MINIO_BUCKETS}"
+log "INFO" "  - ENABLE_INITIALIZE_BUCKETS: ${ENABLE_INITIALIZE_BUCKETS:-false}"
 
 # 检查数据目录
 if [ ! -d "${MINIO_DATA_PATH:-/data}" ]; then
@@ -135,10 +136,15 @@ initialize_buckets() {
 }
 
 # 执行初始化
-if install_mc_client; then
-    initialize_buckets
+if [ "${ENABLE_INITIALIZE_BUCKETS:-false}" = "true" ]; then
+    log "INFO" "ENABLE_INITIALIZE_BUCKETS=true，执行存储桶初始化"
+    if install_mc_client; then
+        initialize_buckets
+    else
+        log "WARNING" "跳过存储桶初始化"
+    fi
 else
-    log "WARNING" "跳过存储桶初始化"
+    log "INFO" "ENABLE_INITIALIZE_BUCKETS=false，跳过存储桶初始化"
 fi
 
 # 停止后台进程并重新在前台启动

@@ -3,7 +3,8 @@ LABEL maintainer="seaside <seaside@qq.com>"
 
 # 设置 startup.sh 使用的环境变量默认值
 # 注意：MINIO_ROOT_USER 和 MINIO_ROOT_PASSWORD 已在基础镜像中定义
-ENV MINIO_DATA_PATH=/data \
+ENV ENABLE_INITIALIZE_BUCKETS = false \
+    MINIO_DATA_PATH=/data \
     MINIO_CONSOLE_PORT=9001 \
     MINIO_ENDPOINT=http://localhost:9000 \
     MINIO_BUCKETS="backup:private:备份存储桶,asset:public:资源存储桶,lunchbox:public:午餐盒应用存储桶,temp:public:临时文件存储桶,logs:private:日志存储桶"
