@@ -366,9 +366,9 @@ start_supervisord_background() {
 
         # 检查supervisord进程状态
         sleep 2
-        if supervisorctl status >/dev/null 2>&1; then
+        if supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 status >/dev/null 2>&1; then
             log_success "supervisord 进程管理正常"
-            supervisorctl status
+            supervisorctl -c /usr/local/etc/supervisord.conf -s http://127.0.0.1:9201 status
         else
             log_warning "supervisord 进程管理连接失败"
         fi

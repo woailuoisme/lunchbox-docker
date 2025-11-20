@@ -1,3 +1,4 @@
+ARG CHANGE_SOURCE=true
 # PHP-FPM 服务镜像 - 基于 php-base 镜像构建
 #FROM jiaoio/php-base:latest
 #FROM quay.io/jiaoio/php-base:8.4-latest
@@ -17,10 +18,10 @@ ENV APP_ENABLE=true \
     APP_DEBUG=true \
     WORKER_QUEUE=default,broadcasting,order,mail,sms \
     ENABLE_SUPERVISOR=true \
-    ENABLE_WORKER=true \
     ENABLE_SCHEDULE=true \
+    ENABLE_HORIZON=true \
+    ENABLE_WORKER=false \
     ENABLE_REVERB=false \
-    ENABLE_HORIZON=false \
     ENABLE_PULSE=false \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 

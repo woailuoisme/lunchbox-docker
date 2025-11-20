@@ -1,6 +1,5 @@
 # Makefile for Lunchbox Docker Environment
 # =======================================
-
 SHELL = /bin/bash
 DC_RUN_ARGS = -f docker-compose.yml
 DC_SUPERVISOR_PATH = /usr/local/etc/supervisord.conf

@@ -244,6 +244,18 @@ services:
     networks:
       - backend
 
+  php-horizon:
+    build:
+      context: php-horizon
+    container_name: php-horizon
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+
   php-franken:
     build:
       context: php-franken-xdebug
@@ -486,9 +498,6 @@ services:
       - "8180:8080"
     environment:
       - DOZZLE_THEME=dark
-    #    secrets:
-    #        - source: users
-    #          target: /data/users.yml
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 3s
@@ -497,8 +506,6 @@ services:
     networks:
       - frontend
       - backend
-    depends_on:
-      - watchtower
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
 
@@ -512,13 +519,11 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - "8580:8080"
-    depends_on:
-      - watchtower
+#    depends_on:
+#      - watchtower
     networks:
       - frontend
       - backend
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
 
   #  registry:
   #    container_name: registry
@@ -593,29 +598,29 @@ services:
   #    networks:
   #      - backend
 
-  watchtower:
-    container_name: watchtower
-    image: containrrr/watchtower
-    restart: always
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
-    ports:
-      - "8880:8080"
-    environment:
-      - WATCHTOWER_HTTP_API_METRICS=true
-      - WATCHTOWER_HTTP_API_TOKEN="demo_token"
-      - WATCHTOWER_CLEANUP=true
-      - WATCHTOWER_POLL_INTERVAL=3600 # 1小时检查一次
-      - TZ=Asia/Shanghai
-    healthcheck:
-      test: ["CMD", "/watchtower", "--health-check"]
-      interval: 10m
-      timeout: 30s
-      retries: 3
-      start_period: 60s
-    networks:
-      - frontend
-      - backend
+#  watchtower:
+#    container_name: watchtower
+#    image: containrrr/watchtower
+#    restart: always
+#    volumes:
+#      - "/var/run/docker.sock:/var/run/docker.sock"
+#    ports:
+#      - "8880:8080"
+#    environment:
+#      - WATCHTOWER_HTTP_API_METRICS=true
+#      - WATCHTOWER_HTTP_API_TOKEN="demo_token"
+#      - WATCHTOWER_CLEANUP=true
+#      - WATCHTOWER_POLL_INTERVAL=3600 # 1小时检查一次
+#      - TZ=Asia/Shanghai
+#    healthcheck:
+#      test: ["CMD", "/watchtower", "--health-check"]
+#      interval: 10m
+#      timeout: 30s
+#      retries: 3
+#      start_period: 60s
+#    networks:
+#      - frontend
+#      - backend
 #  autoheal:
 #    container_name: autoheal
 #    image: willfarrell/autoheal:latest
