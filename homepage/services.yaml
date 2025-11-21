@@ -1,0 +1,90 @@
+---
+# Homepage 服务配置 - 基于项目 .env 文件
+# 使用实际的环境变量和密码
+
+- Docker 管理:
+    - Docker:
+        icon: docker
+        href: "#"
+        description: Docker 容器运行时
+
+- 系统管理:
+    - Dozzle:
+        icon: dozzle
+        href: https://dozzle.{$SITE_ADDRESS}
+        description: Docker 容器日志查看器
+        server: my-docker
+        container: dozzle
+
+#     - Portainer:
+#         icon: portainer
+#         href: http://localhost:9100
+#         description: Docker 容器管理平台
+#         server: my-docker
+#         container: portainer
+
+- 核心服务:
+    - Caddy:
+        icon: caddy
+        href: http://localhost:80
+        description: Web 服务器和反向代理
+        server: my-docker
+        container: caddy
+
+    - Authelia:
+        icon: authelia
+        href: http://localhost:9091
+        description: 身份验证和授权服务
+        server: my-docker
+        container: authelia
+
+    - PHP-FPM:
+        icon: php
+        href: "#"
+        description: PHP FastCGI (v8.4)
+        server: my-docker
+        container: php-fpm
+
+    - PHP-FRANKEN:
+        icon: php
+        href: "#"
+        description: PHP octane franken (v8.4)
+        server: my-docker
+        container: php-franken
+
+    - PHP-REVERB:
+        icon: php
+        href: "#"
+        description: PHP octane reverb (v8.4)
+        server: my-docker
+        container: php-reverb
+
+- 数据存储:
+    - MinIO:
+        icon: minio
+        href: http://localhost:9001
+        description: 对象存储服务
+        server: my-docker
+        container: minio
+
+    - PostgresSQL:
+        icon: postgres
+        href: "#"
+        description: 关系型数据库 (v17.6)
+        server: my-docker
+        container: postgres
+
+    - Redis:
+        icon: redis
+        href: "#"
+        description: 内存数据库和缓存 (v7.4)
+        server: my-docker
+        container: redis
+
+    - Meilisearch:
+        icon: meilisearch
+        href: "#"
+        description: 全文搜索服务
+        server: my-docker
+        container: meilisearch
+

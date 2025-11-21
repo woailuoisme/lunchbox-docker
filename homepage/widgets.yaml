@@ -1,0 +1,49 @@
+---
+# Homepage Widgets 配置 - 基于项目 .env 文件
+# 系统监控和搜索功能
+
+# 系统资源监控
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    cputemp: true
+    uptime: true
+    units: metric
+    refresh: 3000
+    diskUnits: bytes
+
+# Docker 容器状态
+- docker:
+    server: my-docker
+    container: homepage
+
+# 搜索功能
+- search:
+    provider: duckduckgo
+    target: _blank
+    showSearchSuggestions: true
+
+# 日期时间
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: long
+      hourCycle: h24
+    locale: zh-CN
+
+# 天气信息（可选，需要 API key）
+# - openweathermap:
+#     label: 上海
+#     latitude: 31.2304
+#     longitude: 121.4737
+#     units: metric
+#     provider: openweathermap
+#     apikey: your_openweathermap_api_key
+
+# 快捷链接
+- quicklaunch:
+    searchDescriptions: true
+    hideInternetSearch: false
+    hideVisitURL: false

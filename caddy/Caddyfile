@@ -1,0 +1,76 @@
+{
+    # 全局配置
+    email admin@example.com
+    # 启用通配符证书支持
+#    acme_ca https://acme-v02.api.letsencrypt.org/directory
+    # 使用DNS挑战获取通配符证书
+    # acme_dns <provider> <credentials>
+
+    # 日志配置
+    log {
+        format console {
+            time_format "2006/01/02 15:04:05.000"
+            level_format "upper"
+            message_key "msg"
+            level_key "level"
+            time_key "ts"
+            name_key "logger"
+        }
+    }
+}
+
+# 通配符证书配置示例
+# *.test.local {
+#     tls {
+#         dns <dns_provider> <api_credentials>
+#     }
+#
+#     @auth {
+#         host auth.test.local
+#     }
+#     reverse_proxy @auth authelia:9091
+#
+#     @dozzle {
+#         host dozzle.test.local
+#     }
+#     reverse_proxy @dozzle dozzle:8080
+# }
+
+import templates/*
+# Use the "laravel-app" snippet for our site:
+import laravel-app api.{$SITE_ADDRESS} /var/www/lunchbox
+
+import proxy-app app.{$SITE_ADDRESS}  php-franken:8001
+import proxy-app ws.{$SITE_ADDRESS}  php-reverb:8080
+import proxy-app search.{$SITE_ADDRESS}  meilisearch:7700
+import proxy-app mo.{$SITE_ADDRESS}  minio:9001
+import proxy-app mq.{$SITE_ADDRESS}  rabbitmq:15672
+import proxy-app mos.{$SITE_ADDRESS}  minio:9000
+import proxy-app home.{$SITE_ADDRESS}  homepage:3000
+
+import proxy-app auth.{$SITE_ADDRESS}  authelia:9091
+import proxy-app-auth dozzle.{$SITE_ADDRESS}  dozzle:8080
+# import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
+# import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
+
+app.{$SITE_ADDRESS}:45432 {
+    reverse_proxy postgres:5432 {
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 30s
+            read_timeout 30s
+            write_timeout 30s
+        }
+    }
+}
+
+app.{$SITE_ADDRESS}:46379 {
+    reverse_proxy redis:6379 {
+        transport http {
+            dial_timeout 5s
+            response_header_timeout 30s
+            read_timeout 30s
+            write_timeout 30s
+        }
+    }
+}

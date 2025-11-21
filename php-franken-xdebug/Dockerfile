@@ -1,5 +1,9 @@
 #FROM ccr.ccs.tencentyun.com/jiaoio/php-base-franken
 #FROM jiaoio/php-base-franken
+ARG CHANGE_SOURCE=true
+# PHP-FPM 服务镜像 - 基于 php-base 镜像构建
+#FROM jiaoio/php-base:latest
+#FROM quay.io/jiaoio/php-base:8.4-latest
 FROM jiaoio/php-base-franken-xdebug
 ENV APP_ENABLE=true \
     APP_PATH=/var/www/lunchbox \

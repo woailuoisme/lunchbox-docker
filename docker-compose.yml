@@ -39,6 +39,28 @@ services:
     networks:
       - frontend
       - backend
+  caddy:
+    image: caddy:2.10.2-alpine
+    container_name: caddy
+    environment:
+      - SITE_ADDRESS=${SITE_ADDRESS}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}caddy:/etc/caddy
+      - ${DATA_PATH}data:/data
+      - ${DATA_PATH}config:/config
+    restart: always
+    depends_on:
+      - authelia
+      - error-pages
+      - dozzle
+    networks:
+      - frontend
+      - backend
 
   #  dnsmasq:
   #    container_name: dnsmasq
@@ -559,44 +581,63 @@ services:
   #    networks:
   #      - backend
   #      - frontend
-  pgsql:
-    build:
-      context: ./pgsql
-      dockerfile: Dockerfile
-    container_name: lunchbox_db
-    restart: always
+#  pgsql:
+#    build:
+#      context: ./pgsql
+#      dockerfile: Dockerfile
+#    container_name: lunchbox_db
+#    restart: always
+#    environment:
+#      POSTGRES_DB: lunchbox
+#      POSTGRES_USER: devuser
+#      POSTGRES_PASSWORD: mysecretpassword
+#    ports:
+#      - "25432:5432" # 映射端口
+#    volumes:
+#      - ${DATA_PATH}pgsql:/var/lib/postgresql/data # 数据持久化
+#    networks:
+#      - backend
+#      - frontend
+
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command:
+      - serve
     environment:
-      POSTGRES_DB: lunchbox
-      POSTGRES_USER: devuser
-      POSTGRES_PASSWORD: mysecretpassword
-    ports:
-      - "25432:5432" # 映射端口
+      - TZ=Asia/Shanghai    # optional: set desired timezone
     volumes:
-      - ${DATA_PATH}pgsql}:/var/lib/postgresql/data # 数据持久化
+      - ${DATA_PATH}ntfy:/var/cache/ntfy
+      - ${CONFIG_PATH}ntfy:/etc/ntfy
+    ports:
+      - "5580:80"
+    healthcheck: # optional: remember to adapt the host:port to your environment
+      test: [ "CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1" ]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: always
+    init: true # needed, if healthcheck is used. Prevents zombie processes
     networks:
       - backend
-  #  ntfy:
-  #    image: binwiederhier/ntfy
-  #    container_name: ntfy
-  #    command:
-  #      - serve
-  #    environment:
-  #      - TZ=Asia/Shanghai    # optional: set desired timezone
-  #    volumes:
-  #      - ${DATA_PATH}ntfy:/var/cache/ntfy
-  #      - ${CONFIG_PATH}ntfy:/etc/ntfy
-  #    ports:
-  #      - "5580:80"
-  #    healthcheck: # optional: remember to adapt the host:port to your environment
-  #      test: [ "CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1" ]
-  #      interval: 60s
-  #      timeout: 10s
-  #      retries: 3
-  #      start_period: 40s
-  #    restart: unless-stopped
-  #    init: true # needed, if healthcheck is used. Prevents zombie processes
-  #    networks:
-  #      - backend
+
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    env_file:
+      - ./.env
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: home.${SITE_ADDRESS}
+    ports:
+      - "33000:3000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
+      - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
+      - ${LOG_PATH}homepage:/app/config/logs # Make sure your local config directory exists
+    restart: always
+    networks:
+      - frontend
 
 #  watchtower:
 #    container_name: watchtower

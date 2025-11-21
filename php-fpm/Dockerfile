@@ -49,7 +49,7 @@ COPY supervisord.conf /usr/local/etc/supervisord.conf
 COPY startup.sh /usr/local/bin/startup.sh
 
 # 设置启动脚本执行权限（php-base 已设置用户和目录权限）
-RUN chmod +x /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup
 
 # 创建 PHP-FPM 日志目录
 RUN mkdir -p /var/log/php-fpm \

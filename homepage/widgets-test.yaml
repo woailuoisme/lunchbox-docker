@@ -1,0 +1,30 @@
+---
+# 测试用的简化 widgets 配置
+# 只包含基本的系统监控功能
+
+# 系统资源监控
+- resources:
+    cpu: true
+    memory: true
+    disk: /
+    uptime: true
+    units: metric
+    refresh: 5000
+
+# Docker 容器状态
+- docker:
+    server: my-docker
+
+# 搜索功能
+- search:
+    provider: duckduckgo
+    target: _blank
+
+# 日期时间
+- datetime:
+    text_size: xl
+    format:
+      timeStyle: short
+      dateStyle: long
+      hourCycle: h24
+    locale: zh-CN

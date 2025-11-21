@@ -98,13 +98,13 @@ access_control:
     # bypass rule
     - domain:
         - 'auth.{{ env "DOMAIN" }}'
-      policy: 'bypass'
+      policy: "bypass"
     # two actor login - catch all
     - domain:
         - '{{ env "DOMAIN" }}'
         - '*.{{ env "DOMAIN" }}'
-#      policy: 'two_factor'
-      policy: 'one_factor'
+      #      policy: 'two_factor'
+      policy: "one_factor"
 
 # ==========================================================================
 # 会话配置
