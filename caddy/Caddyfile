@@ -19,36 +19,19 @@
     }
 }
 
-# 通配符证书配置示例
-# *.test.local {
-#     tls {
-#         dns <dns_provider> <api_credentials>
-#     }
-#
-#     @auth {
-#         host auth.test.local
-#     }
-#     reverse_proxy @auth authelia:9091
-#
-#     @dozzle {
-#         host dozzle.test.local
-#     }
-#     reverse_proxy @dozzle dozzle:8080
-# }
-
 import templates/*
 # Use the "laravel-app" snippet for our site:
-import laravel-app api.{$SITE_ADDRESS} /var/www/lunchbox
+import laravel-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
 
-import proxy-app app.{$SITE_ADDRESS}  php-franken:8001
+import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
 import proxy-app ws.{$SITE_ADDRESS}  php-reverb:8080
-import proxy-app search.{$SITE_ADDRESS}  meilisearch:7700
 import proxy-app mo.{$SITE_ADDRESS}  minio:9001
 import proxy-app mq.{$SITE_ADDRESS}  rabbitmq:15672
 import proxy-app mos.{$SITE_ADDRESS}  minio:9000
-import proxy-app home.{$SITE_ADDRESS}  homepage:3000
 
 import proxy-app auth.{$SITE_ADDRESS}  authelia:9091
+import proxy-app-auth home.{$SITE_ADDRESS}  homepage:3000
+import proxy-app-auth search.{$SITE_ADDRESS}  meilisearch:7700
 import proxy-app-auth dozzle.{$SITE_ADDRESS}  dozzle:8080
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000

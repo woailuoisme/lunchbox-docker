@@ -79,21 +79,21 @@ services:
   #      - frontend
   #      - backend
 
-#  traefik:
-#    container_name: traefik
-#    image: traefik:3.5.4
-#    restart: always
-#    environment:
-#      - TZ=${TIMEZONE}
-#      - DOMAIN=${SITE_ADDRESS}
-#      - ENABLE_HTTPS=${ENABLE_HTTPS:-true}
-#    ports:
-#      - "80:80" # HTTP
-#      - "443:443" # HTTPS
-#      - "443:443/udp" # HTTP/3
-#      - "8080:8080"
-#      - "45432:5432"
-#      - "46379:6379"
+  #  traefik:
+  #    container_name: traefik
+  #    image: traefik:3.5.4
+  #    restart: always
+  #    environment:
+  #      - TZ=${TIMEZONE}
+  #      - DOMAIN=${SITE_ADDRESS}
+  #      - ENABLE_HTTPS=${ENABLE_HTTPS:-true}
+  #    ports:
+  #      - "80:80" # HTTP
+  #      - "443:443" # HTTPS
+  #      - "443:443/udp" # HTTP/3
+  #      - "8080:8080"
+  #      - "45432:5432"
+  #      - "46379:6379"
   #    volumes:
   #      - /etc/localtime:/etc/localtime:ro
   #      - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -218,6 +218,9 @@ services:
       - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
+      - APP_ENV=fpm
+      - APP_DEBUG=true
+      - ENABLE_SUPERVISOR=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -225,11 +228,11 @@ services:
       - frontend
     depends_on:
       - redis
-      - pgbouncer
       - postgres
       - minio
       - meilisearch
       - rabbitmq
+
   php-worker:
     build:
       context: php-worker
@@ -292,7 +295,7 @@ services:
       - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
     environment:
       - APP_PATH=${APP_PATH}
-      - APP_ENV=dev
+      - APP_ENV=octane
       - APP_DEBUG=true
       - ENABLE_SUPERVISOR=false
       - WATCH=true
@@ -541,8 +544,8 @@ services:
       - TZ=Asia/Shanghai
     ports:
       - "8580:8080"
-#    depends_on:
-#      - watchtower
+    #    depends_on:
+    #      - watchtower
     networks:
       - frontend
       - backend
@@ -581,23 +584,23 @@ services:
   #    networks:
   #      - backend
   #      - frontend
-#  pgsql:
-#    build:
-#      context: ./pgsql
-#      dockerfile: Dockerfile
-#    container_name: lunchbox_db
-#    restart: always
-#    environment:
-#      POSTGRES_DB: lunchbox
-#      POSTGRES_USER: devuser
-#      POSTGRES_PASSWORD: mysecretpassword
-#    ports:
-#      - "25432:5432" # 映射端口
-#    volumes:
-#      - ${DATA_PATH}pgsql:/var/lib/postgresql/data # 数据持久化
-#    networks:
-#      - backend
-#      - frontend
+  #  pgsql:
+  #    build:
+  #      context: ./pgsql
+  #      dockerfile: Dockerfile
+  #    container_name: lunchbox_db
+  #    restart: always
+  #    environment:
+  #      POSTGRES_DB: lunchbox
+  #      POSTGRES_USER: devuser
+  #      POSTGRES_PASSWORD: mysecretpassword
+  #    ports:
+  #      - "25432:5432" # 映射端口
+  #    volumes:
+  #      - ${DATA_PATH}pgsql:/var/lib/postgresql/data # 数据持久化
+  #    networks:
+  #      - backend
+  #      - frontend
 
   ntfy:
     image: binwiederhier/ntfy
@@ -605,14 +608,18 @@ services:
     command:
       - serve
     environment:
-      - TZ=Asia/Shanghai    # optional: set desired timezone
+      - TZ=Asia/Shanghai # optional: set desired timezone
     volumes:
       - ${DATA_PATH}ntfy:/var/cache/ntfy
       - ${CONFIG_PATH}ntfy:/etc/ntfy
     ports:
       - "5580:80"
     healthcheck: # optional: remember to adapt the host:port to your environment
-      test: [ "CMD-SHELL", "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1",
+        ]
       interval: 60s
       timeout: 10s
       retries: 3
@@ -626,19 +633,20 @@ services:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
     env_file:
-      - ./.env
+      - ./homepage/.env
     environment:
       HOMEPAGE_ALLOWED_HOSTS: home.${SITE_ADDRESS}
+      HOMEPAGE_VAR_SITE_ADDRESS: ${SITE_ADDRESS}
+      HOMEPAGE_VAR_DOMAIN: ${SITE_ADDRESS}
     ports:
       - "33000:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
-      - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
       - ${LOG_PATH}homepage:/app/config/logs # Make sure your local config directory exists
+      - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
     restart: always
     networks:
       - frontend
-
 #  watchtower:
 #    container_name: watchtower
 #    image: containrrr/watchtower

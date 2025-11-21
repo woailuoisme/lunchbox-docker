@@ -54,7 +54,7 @@ layout:
 
   数据存储:
     style: row
-    columns: 3
+    columns: 4
     useEqualHeights: true
     icon: mdi-database-outline
 
