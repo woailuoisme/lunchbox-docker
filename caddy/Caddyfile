@@ -21,7 +21,7 @@
 
 import templates/*
 # Use the "laravel-app" snippet for our site:
-import laravel-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
+import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
 
 import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
 import proxy-app ws.{$SITE_ADDRESS}  php-reverb:8080
