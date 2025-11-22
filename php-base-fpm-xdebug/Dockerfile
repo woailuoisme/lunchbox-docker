@@ -1,7 +1,11 @@
 # ============================================================================
-# Xdebug 调试工具
+# PHP 基础镜像构建文件
+# 基于 PHP 8.4 FPM Alpine 版本，包含所有PHP扩展和依赖
+# 作为 php-fpm、php-queue、php-schedule 的基础镜像
+# 优化版本：减少镜像体积，移除不必要的开发工具
 # ============================================================================
-FROM jiaoio/php-base-cli
+
+FROM jiaoio/php-base-fpm
 LABEL maintainer="seaside <531773730@qq.com>"
 
 ARG WITH_XDEBUG=true
