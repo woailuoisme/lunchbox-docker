@@ -9,7 +9,7 @@
     # 日志配置
     log {
         format console {
-            time_format "2006/01/02 15:04:05.000"
+            time_format "2006-01-02 15:04:05.000"
             level_format "upper"
             message_key "msg"
             level_key "level"
@@ -20,19 +20,23 @@
 }
 
 import templates/*
-# Use the "laravel-app" snippet for our site:
-import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
+#import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
+import fpm-app-auth fpm.{$SITE_ADDRESS} /var/www/lunchbox
+#import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
+import proxy-octane-app-auth octane.{$SITE_ADDRESS}  php-franken:8001
 
-import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
+
 import proxy-app ws.{$SITE_ADDRESS}  php-reverb:8080
 import proxy-app mo.{$SITE_ADDRESS}  minio:9001
 import proxy-app mq.{$SITE_ADDRESS}  rabbitmq:15672
 import proxy-app mos.{$SITE_ADDRESS}  minio:9000
+import proxy-app push.{$SITE_ADDRESS}  gotify:80
 
 import proxy-app auth.{$SITE_ADDRESS}  authelia:9091
 import proxy-app-auth home.{$SITE_ADDRESS}  homepage:3000
 import proxy-app-auth search.{$SITE_ADDRESS}  meilisearch:7700
 import proxy-app-auth dozzle.{$SITE_ADDRESS}  dozzle:8080
+
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
 
@@ -57,3 +61,19 @@ app.{$SITE_ADDRESS}:46379 {
         }
     }
 }
+
+#As a standalone domain
+#gotify.example.com {
+#    # Set the port to the one you are using in gotify
+#    # Websocket support, proxy headers, etc. are enabled by default
+#    reverse_proxy localhost:1245
+#}
+#At a subpath
+#example.com {
+#    route /gotify/* {
+#        uri strip_prefix /gotify
+#        # Set the port to the one you are using in gotify
+#        reverse_proxy localhost:1245
+#    }
+#    redir /gotify /gotify/
+#}

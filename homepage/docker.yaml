@@ -3,8 +3,12 @@
 # 文档: https://gethomepage.dev/configs/docker/
 
 # 本地 Docker 实例配置
+# my-docker:
+#   socket: /var/run/docker.sock
+
 my-docker:
-  socket: /var/run/docker.sock
+  host: docker-proxy
+  port: 2375
 #   socket: unix:///Users/seaside/.orbstack/run/docker.sock
   # 确保 Homepage 容器有权限访问 Docker socket
   # 在 docker-compose.yml 中已正确配置：

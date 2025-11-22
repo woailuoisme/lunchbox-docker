@@ -2,12 +2,6 @@
 # Homepage 服务配置
 # 使用环境变量格式: {{HOMEPAGE_VAR_SITE_ADDRESS}}
 
-- Docker 管理:
-    - Docker:
-        icon: docker
-        href: "#"
-        description: Docker 容器运行时
-
 - 系统管理:
     - Dozzle:
         icon: dozzle
@@ -26,10 +20,42 @@
 - 核心服务:
     - Caddy:
         icon: caddy
+        showStats: true
         href: "#"
         description: Web 服务器和反向代理
         server: my-docker
         container: caddy
+        widget:
+          type: caddy
+          url: http://caddy:2019
+
+#     - Traefik:
+#         icon: traefik
+#         href: "#"
+#         description: Web 服务器和反向代理
+#         server: my-docker
+#         container: traefik
+#         widget:
+#           type: caddy
+#           url: http://caddy:2019
+#     - Nginx:
+#         icon: nginx
+#         href: "#"
+#         description: Web 服务器和反向代理
+#         server: my-docker
+#         container: nginx
+#     - Certbot:
+#         icon: certbot
+#         href: "#"
+#         description: Web 服务器和反向代理
+#         server: my-docker
+#         container: certbot
+#     - Watchtower:
+#         icon: watchtower
+#         href: http://localhost:8880
+#         description: Docker 容器自动更新
+#         server: my-docker
+#         container: watchtower
 
     - Authelia:
         icon: authelia
@@ -37,6 +63,17 @@
         description: 身份验证和授权服务
         server: my-docker
         container: authelia
+
+    - Gotify:
+        icon: gotify
+        href: https://push.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        description: message push
+        server: my-docker
+        container: gotify
+        widget:
+          type: gotify
+          url: http://gotify:80
+          key: CRXILYgevJcanHm
 
     - PHP-FPM:
         icon: php
@@ -80,6 +117,10 @@
         description: 内存数据库和缓存 (v7.4)
         server: my-docker
         container: redis
+#         widget:
+#           type: redis
+#           url: redis://redis:6379
+#           password: redis_secret
 
     - Meilisearch:
         icon: meilisearch

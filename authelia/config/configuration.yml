@@ -174,7 +174,7 @@ notifier:
     # Resend API 密钥 (通过环境变量设置)
     password: '{{ env "RESEND_API_KEY" }}'
     # 发件人邮箱地址 (必须使用 Resend 验证的域名)
-    sender: "noreply@haoxiaoguai.xyz"
+    sender: "support@jso.lol"
     identifier: '{{ env "DOMAIN" }}'
     subject: "[Authelia] {title}"
 

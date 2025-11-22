@@ -3,26 +3,32 @@
 # 文档: https://gethomepage.dev/configs/settings/
 
 # 页面基本信息
-title: "Docker 服务面板"
+title: "Docker服务面板"
 description: "本地开发环境服务管理面板"
 favicon: https://cdn.jsdelivr.net/gh/selfhst/icons/webp/homepage.webp
 
 # 主题和外观设置
 theme: dark
-color: slate
+color: zinc
+# color: zinc
+# color: slate
 language: zh-CN
 
+# cardBlur: xs
 # 图标和头部样式
 iconStyle: theme
-headerStyle: underlined
+headerStyle: boxedWidgets
 hideVersion: true
 
 # 链接行为
 target: _blank
 
+# fullWidth: true
+
 # Docker 统计信息
 showStats: true
 statusStyle: "dot"
+hideErrors: true
 
 # 背景设置
 background:

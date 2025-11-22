@@ -44,6 +44,7 @@ services:
     container_name: caddy
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
+      - CADDY_ADMIN=0.0.0.0:2019
     ports:
       - "80:80"
       - "443:443"
@@ -51,8 +52,7 @@ services:
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}caddy:/etc/caddy
-      - ${DATA_PATH}data:/data
-      - ${DATA_PATH}config:/config
+      - ${DATA_PATH}:/data
     restart: always
     depends_on:
       - authelia
@@ -629,6 +629,37 @@ services:
     networks:
       - backend
 
+  gotify:
+    image: gotify/server
+    container_name: gotify
+    ports:
+      - "8380:80"
+    environment:
+      - GOTIFY_DEFAULTUSER_NAME=admin
+      - GOTIFY_DEFAULTUSER_PASS=admin
+      - TZ="Asia/Shanghai"
+    volumes:
+      - '${DATA_PATH}gotify:/app/data'
+    networks:
+      - backend
+
+  docker-proxy:
+    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    container_name: docker-proxy
+    environment:
+      - CONTAINERS=1 # Allow access to viewing containers
+      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
+      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
+      - POST=0 # Disallow any POST operations (effectively read-only)
+    ports:
+      - "127.0.0.1:2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Mounted as read-only
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
+
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
@@ -638,15 +669,17 @@ services:
       HOMEPAGE_ALLOWED_HOSTS: home.${SITE_ADDRESS}
       HOMEPAGE_VAR_SITE_ADDRESS: ${SITE_ADDRESS}
       HOMEPAGE_VAR_DOMAIN: ${SITE_ADDRESS}
+      PUID: 1000 # optional, your user id
+      PGID: 1000
     ports:
       - "33000:3000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
-      - ${LOG_PATH}homepage:/app/config/logs # Make sure your local config directory exists
       - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
     restart: always
     networks:
       - frontend
+      - backend
 #  watchtower:
 #    container_name: watchtower
 #    image: containrrr/watchtower
