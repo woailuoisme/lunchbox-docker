@@ -204,7 +204,8 @@ services:
 
   php-fpm:
     build:
-      context: ./php-fpm
+#      context: ./php-fpm
+      context: ./php-fpm-xdebug
       dockerfile: Dockerfile
       args:
         - CHANGE_SOURCE=${CHANGE_SOURCE}

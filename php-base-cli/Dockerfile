@@ -20,6 +20,7 @@ ARG WWWGROUP=33
 ARG WITH_PG=true
 ARG WITH_AMQP=true
 ARG WITH_LDAP=false
+ARG WITH_SWOOLE=true
 
 # ============================================================================
 # 系统依赖安装和PHP扩展编译（合并为单个RUN指令以减少层数）
