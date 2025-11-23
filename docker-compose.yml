@@ -55,9 +55,12 @@ services:
       - ${DATA_PATH}:/data
     restart: always
     depends_on:
-      - authelia
-      - error-pages
-      - dozzle
+      authelia:
+        condition: service_healthy
+      error-pages:
+        condition: service_started
+      dozzle:
+        condition: service_healthy
     networks:
       - frontend
       - backend
