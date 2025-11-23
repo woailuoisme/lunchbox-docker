@@ -38,6 +38,7 @@ RUN set -eux; \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache libpq; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache openldap; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache rabbitmq-c; fi \
+    && if [ "$WITH_SWOOLE" = "true" ]; then apk add --no-cache openssl; fi \
     && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
     && echo "${TIMEZONE}" > /etc/timezone \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
@@ -52,6 +53,7 @@ RUN set -eux; \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache --virtual .pg-build postgresql-dev; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache --virtual .ldap-build openldap-dev; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
+    && if [ "$WITH_SWOOLE" = "true" ]; then apk add --no-cache --virtual .swoole-build openssl-dev; fi \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
     && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif ffi \
@@ -59,12 +61,14 @@ RUN set -eux; \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-install -j"$(nproc)" ldap; fi \
     && pecl install redis && docker-php-ext-enable redis \
     && if [ "$WITH_AMQP" = "true" ]; then pecl install amqp && docker-php-ext-enable amqp; fi \
+    && if [ "$WITH_SWOOLE" = "true" ]; then pecl install swoole && docker-php-ext-enable swoole; fi \
     && pecl clear-cache \
     && rm -rf /tmp/pear /tmp/pecl-build \
     && apk del .build-deps \
     && if [ "$WITH_PG" = "true" ]; then apk del .pg-build; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk del .ldap-build; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk del .amqp-build; fi \
+    && if [ "$WITH_SWOOLE" = "true" ]; then apk del .swoole-build; fi \
     && rm -rf /var/cache/apk/* \
     && find /usr/local/lib/php -name "*.a" -delete \
     && find /usr/local/lib/php -name "*.la" -delete \
