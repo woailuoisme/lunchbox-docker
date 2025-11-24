@@ -74,9 +74,30 @@ check_horizon_config() {
     fi
 
     # 检查是否安装了 horizon
+    log_info "执行 Horizon 状态检查..."
     if ! php "${APP_PATH}/artisan" horizon:status > /dev/null 2>&1; then
         log_error "Laravel Horizon 未正确安装或配置"
         log_info "请确保已运行: composer require laravel/horizon"
+        log_info "检查 vendor 目录中是否有 horizon 包..."
+        if [ -d "${APP_PATH}/vendor/laravel/horizon" ]; then
+            log_success "Horizon 包已安装"
+            log_info "检查 Horizon 配置文件..."
+            if [ -f "${APP_PATH}/config/horizon.php" ]; then
+                log_success "Horizon 配置文件存在"
+                log_info "检查 artisan 命令是否可用..."
+                if php "${APP_PATH}/artisan" --version > /dev/null 2>&1; then
+                    log_success "artisan 命令可用"
+                    log_info "尝试手动执行 horizon:status 命令获取详细错误..."
+                    php "${APP_PATH}/artisan" horizon:status
+                else
+                    log_error "artisan 命令不可用"
+                fi
+            else
+                log_error "Horizon 配置文件不存在"
+            fi
+        else
+            log_error "Horizon 包未安装，请运行: composer require laravel/horizon"
+        fi
         exit 1
     fi
 

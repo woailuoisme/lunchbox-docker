@@ -244,6 +244,7 @@ services:
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -256,6 +257,7 @@ services:
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -268,6 +270,7 @@ services:
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -280,6 +283,7 @@ services:
     restart: always
     environment:
       - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:

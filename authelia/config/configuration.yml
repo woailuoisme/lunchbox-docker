@@ -22,6 +22,10 @@ server:
         implementation: "AuthRequest"
       forward-auth:
         implementation: "ForwardAuth"
+      ext-authz:
+        implementation: 'ExtAuthz'
+      legacy:
+        implementation: 'Legacy'
 
 # ==========================================================================
 # 日志配置
@@ -46,6 +50,7 @@ totp:
   period: 30
   # 位数
   digits: 6
+
 
 # ==========================================================================
 # 认证后端配置
