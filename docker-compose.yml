@@ -40,7 +40,12 @@ services:
       - frontend
       - backend
   caddy:
-    image: caddy:2.10.2-alpine
+    build:
+      context: ./caddy
+      args:
+        - CADDY_VERSION=${CADDY_VERSION:-2.10.2-alpine}
+        - CHANGE_SOURCE=${CHANGE_SOURCE:-true}
+        - TIMEZONE=${TIMEZONE:-Asia/Shanghai}
     container_name: caddy
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
@@ -207,7 +212,7 @@ services:
 
   php-fpm:
     build:
-#      context: ./php-fpm
+      #      context: ./php-fpm
       context: ./php-fpm-xdebug
       dockerfile: Dockerfile
       args:
@@ -647,7 +652,7 @@ services:
       - GOTIFY_DEFAULTUSER_PASS=admin
       - TZ="Asia/Shanghai"
     volumes:
-      - '${DATA_PATH}gotify:/app/data'
+      - "${DATA_PATH}gotify:/app/data"
     networks:
       - backend
 

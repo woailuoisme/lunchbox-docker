@@ -1,29 +1,38 @@
-# 阶段 1: 构建 Caddy
-FROM caddy:builder AS builder
+ARG CADDY_VERSION=2.10.2-alpine
+FROM caddy:${CADDY_VERSION}
+ARG CHANGE_SOURCE=true
+ARG TIMEZONE=Asia/Shanghai
 
-# 运行 xcaddy build 来构建，不需要指定核心模块，它们会自动包含。
-# 如果您需要添加第三方模块，可以在后面加上 --with <module_path>
-RUN xcaddy build \
-    --output /usr/bin/caddy \
-    # --with github.com/caddy-dns/cloudflare  <-- 如果您需要第三方模块才取消注释
-    # --with github.com/caddy-dns/alidns  <-- 如果您需要第三方模块才取消注释
+# 安全标签
+LABEL maintainer="seaside <531773730@qq.com>"
+RUN if [ "${CHANGE_SOURCE}" = "true" ]; then \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/' /etc/apk/repositories; \
+    fi && \
+    apk add --no-cache nss-tools tzdata curl && \
+    ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
+    echo "${TIMEZONE}" > /etc/timezone
 
-# 阶段 2: 最终运行镜像
-FROM caddy:2.10.2-alpine
+RUN caddy add-package github.com/caddyserver/transform-encoder && \
+    caddy add-package github.com/caddy-dns/cloudflare && \
+    caddy add-package github.com/caddy-dns/alidns
 
-# 安装 certutil 所需的依赖包
-RUN apk add --no-cache nss-tools
-RUN caddy add-package github.com/caddyserver/transform-encoder
 
-# 替换官方的 caddy 可执行文件为我们构建的版本
-COPY --from=builder /usr/bin/caddy /usr/bin/caddy
-
-#COPY snippets /etc/caddy/snippets
-#COPY templates /etc/caddy/templates
-#COPY startup.sh /usr/local/bin/startup.sh
-#RUN chmod +x /usr/local/bin/startup.sh
-# 复制您的 Caddyfile
+COPY snippets /etc/caddy/snippets
+COPY templates /etc/caddy/templates
+COPY startup.sh /usr/local/bin/startup.sh
 COPY Caddyfile /etc/caddy/Caddyfile
+RUN chmod +x /usr/local/bin/startup.sh
 
-# 保持 Caddy 的默认 CMD
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+# 使用启动脚本
+CMD ["/usr/local/bin/startup.sh"]
+
+# 健康检查
+#HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+#    CMD curl -f http://localhost:2019/metrics || exit 1
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD [ \
+    "curl", \
+    "--silent", \
+    "--fail", \
+    "http://localhost:2019/config/" \
+    ]
