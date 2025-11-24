@@ -26,11 +26,7 @@ RUN chmod +x /usr/local/bin/startup.sh
 # 使用启动脚本
 CMD ["/usr/local/bin/startup.sh"]
 
-# 健康检查
-#HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-#    CMD curl -f http://localhost:2019/metrics || exit 1
-
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 CMD [ \
+HEALTHCHECK --interval=60s --timeout=5s --start-period=5s --retries=3 CMD [ \
     "curl", \
     "--silent", \
     "--fail", \

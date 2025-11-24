@@ -1,0 +1,18 @@
+# Empty acquisition configuration
+# This file is intentionally empty to avoid configuration errors
+# CrowdSec will use default Docker log collection
+
+#ime="2025-11-24T22:30:38+08:00" level=fatal msg="crowdsec init: while loading acquisition config:
+#while configuring datasource of type docker from /etc/crowdsec/acquis.yaml (position 0): no containers or services configuration provided"
+#source: docker
+#docker_host: tcp://docker-proxy:2375
+
+#filenames:
+#  - /logs/auth.log
+#  - /logs/syslog
+#labels:
+#  type: syslog
+#---
+#filename: /logs/apache2/*.log
+#labels:
+#  type: apache2

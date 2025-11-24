@@ -12,7 +12,13 @@
 	#        dns cloudflare {env.CF_API_TOKEN}
 	#    }
 
-	# 日志配置
+	# 全局启用 CrowdSec Bouncer（镜像已预装，直接用）
+	crowdsec_bouncer {
+		api_url http://crowdsec:8080
+		api_key a6F5e82zoV6tVueJo/m5mVxtbNgPKZ1cRQtyC2jvqO0
+		action block # 恶意请求返回 403
+		ticker_interval 5s # 5秒轮询一次黑名单
+	}
 	import snippets/global-log.conf
 }
 
@@ -47,45 +53,10 @@ app.{$SITE_ADDRESS}:45432 {
 	}
 }
 
-#:6379 {
-#    # 使用 reverse_proxy 来转发流量
-#    reverse_proxy redis:6379 {
-#        # 关键步骤：指定使用 TCP 传输层
-#        transport tcp
-#    }
-#}
-#
-#app.{$SITE_ADDRESS}:46379  {
-#    reverse_proxy redis:6379 {
-#        transport tcp
-#        allow @allowed
-#        deny all
-#    }
-#}
+:46379 {
+	reverse_proxy redis:6379
+}
 
-#app.{$SITE_ADDRESS}:46379 {
-#    reverse_proxy redis:6379 {
-#        transport http {
-#            dial_timeout 5s
-#            response_header_timeout 30s
-#            read_timeout 30s
-#            write_timeout 30s
-#        }
-#    }
-#}
-
-#As a standalone domain
-#gotify.example.com {
-#    # Set the port to the one you are using in gotify
-#    # Websocket support, proxy headers, etc. are enabled by default
-#    reverse_proxy localhost:1245
-#}
-#At a subpath
-#example.com {
-#    route /gotify/* {
-#        uri strip_prefix /gotify
-#        # Set the port to the one you are using in gotify
-#        reverse_proxy localhost:1245
-#    }
-#    redir /gotify /gotify/
-#}
+:45432 {
+	reverse_proxy postgres:5432
+}
