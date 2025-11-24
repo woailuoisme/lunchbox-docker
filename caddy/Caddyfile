@@ -1,27 +1,19 @@
 {
-	# 全局配置
 	email admin@example.com
 	# 启用通配符证书支持
 	#    acme_ca https://acme-v02.api.letsencrypt.org/directory
 	# 使用DNS挑战获取通配符证书
 	# acme_dns <provider> <credentials>
+#    acme_dns alidns {
+#        access_key_id {env.ALIYUN_ACCESS_KEY_ID}
+#        access_key_secret {env.ALIYUN_ACCESS_KEY_SECRET}
+#    }
+#    tls {
+#        dns cloudflare {env.CF_API_TOKEN}
+#    }
 
 	# 日志配置
-	log {
-        output stdout
-        level INFO
-		format console {
-			time_format "2006-01-02 15:04:05.000"
-#			level_format "upper"
-            level_format "color"
-            duration_format "string"
-
-            time_key "ts"
-            level_key "level"
-            name_key "logger"
-            message_key "msg"
-        }
-	}
+	import snippets/global-log.conf
 }
 
 import templates/*

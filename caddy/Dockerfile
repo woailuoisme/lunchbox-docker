@@ -6,12 +6,14 @@ FROM caddy:builder AS builder
 RUN xcaddy build \
     --output /usr/bin/caddy \
     # --with github.com/caddy-dns/cloudflare  <-- 如果您需要第三方模块才取消注释
+    # --with github.com/caddy-dns/alidns  <-- 如果您需要第三方模块才取消注释
 
 # 阶段 2: 最终运行镜像
 FROM caddy:2.10.2-alpine
 
 # 安装 certutil 所需的依赖包
 RUN apk add --no-cache nss-tools
+RUN caddy add-package github.com/caddyserver/transform-encoder
 
 # 替换官方的 caddy 可执行文件为我们构建的版本
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
