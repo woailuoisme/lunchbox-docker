@@ -341,10 +341,8 @@ services:
       - APP_DEBUG=true
       - ENABLE_SUPERVISOR=false
       - WATCH=true
-      #      - OCTANE_HTTPS=true
-      #      - OCTANE_HTTP_REDIRECT=true
-      #      - APP_URL=https://app.local.test
-      #      - ASSET_URL=https://app.local.test
+      - OCTANE_WORKERS=4
+      - OCTANE_MAX_REQUESTS=300
       - PYTHONWARNINGS=ignore:pkg_resources is deprecated
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -354,7 +352,7 @@ services:
     depends_on:
       php-schedule:
         condition: service_healthy
-      php-worker:
+      php-horizon:
         condition: service_healthy
       php-reverb:
         condition: service_healthy

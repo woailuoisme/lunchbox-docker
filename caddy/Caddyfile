@@ -13,12 +13,12 @@
 	#    }
 
 	# 全局启用 CrowdSec Bouncer（镜像已预装，直接用）
-	crowdsec_bouncer {
-		api_url http://crowdsec:8080
-		api_key a6F5e82zoV6tVueJo/m5mVxtbNgPKZ1cRQtyC2jvqO0
-		action block # 恶意请求返回 403
-		ticker_interval 5s # 5秒轮询一次黑名单
-	}
+	#	crowdsec_bouncer {
+	#		api_url http://crowdsec:8080
+	#		api_key a6F5e82zoV6tVueJo/m5mVxtbNgPKZ1cRQtyC2jvqO0
+	#		action block # 恶意请求返回 403
+	#		ticker_interval 5s # 5秒轮询一次黑名单
+	#	}
 	import snippets/global-log.conf
 }
 
