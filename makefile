@@ -383,3 +383,6 @@ build-base:
 	--tag docker.io/php-base:php8.4-alpine3.22-latest \
 	--push \
 	.
+
+php-fpm-gd:
+	docker exec php-fpm php -r "var_dump(gd_info());"

@@ -68,11 +68,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-franken-xdebug-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-franken-xdebug:latest \
-            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-franken-xdebug-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:latest \
             --tag $REGISTRY_REDHAT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-franken-xdebug-$TAG \
             --tag $REGISTRY_REDHAT/php-base-franken-xdebug:latest \
+            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:$FRANKENPHP_VERSION-php$PHP_VERSION-franken-xdebug-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-franken-xdebug:latest \
             --push \
             .

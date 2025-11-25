@@ -62,11 +62,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/php-base-simple-cli:$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-simple-cli:$PHP_VERSION-cli-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-simple-cli:latest \
-            --tag $REGISTRY_TENCENT/php-base-simple-cli:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-simple-cli:$PHP_VERSION-cli-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-simple-cli:latest \
             --tag $REGISTRY_REDHAT/php-base-simple-cli:$PHP_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/php-base-simple-cli:$PHP_VERSION-cli-$TAG \
             --tag $REGISTRY_REDHAT/php-base-simple-cli:latest \
+            --tag $REGISTRY_TENCENT/php-base-simple-cli:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-simple-cli:$PHP_VERSION-cli-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-simple-cli:latest \
             --push \
             .

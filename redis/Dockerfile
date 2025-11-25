@@ -1,4 +1,4 @@
-ARG REDIS_VERSION=7.4-alpine
+ARG REDIS_VERSION=8.4-alpine
 ARG TIMEZONE=Asia/Shanghai
 
 FROM redis:${REDIS_VERSION}

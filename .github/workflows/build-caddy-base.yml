@@ -40,19 +40,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Tencent Cloud Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
-          password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
-
       - name: Login to RedHat Registry
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: ${{ secrets.REDHAT_REGISTRY_USERNAME }}
           password: ${{ secrets.REDHAT_REGISTRY_TOKEN }}
+
+      - name: Login to Tencent Cloud Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ccr.ccs.tencentyun.com
+          username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
+          password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
 
       - name: Build caddy-base multi-arch image
         run: |
@@ -62,9 +62,9 @@ jobs:
             --build-arg CADDY_VERSION=$CADDY_VERSION \
             --tag $REGISTRY_DOCKERHUB/caddy-base:$CADDY_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/caddy-base:latest \
-            --tag $REGISTRY_TENCENT/caddy-base:$CADDY_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/caddy-base:latest \
             --tag $REGISTRY_REDHAT/caddy-base:$CADDY_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/caddy-base:latest \
+            --tag $REGISTRY_TENCENT/caddy-base:$CADDY_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/caddy-base:latest \
             --push \
             .

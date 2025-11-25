@@ -62,11 +62,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/php-base-fpm:$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-fpm:$PHP_VERSION-fpm-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-fpm:latest \
-            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-fpm-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-fpm:latest \
             --tag $REGISTRY_REDHAT/php-base-fpm:$PHP_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/php-base-fpm:$PHP_VERSION-fpm-$TAG \
             --tag $REGISTRY_REDHAT/php-base-fpm:latest \
+            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm:$PHP_VERSION-fpm-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm:latest \
             --push \
             .

@@ -40,19 +40,19 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Tencent Cloud Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ccr.ccs.tencentyun.com
-          username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
-          password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
-
       - name: Login to RedHat Registry
         uses: docker/login-action@v3
         with:
           registry: quay.io
           username: ${{ secrets.REDHAT_REGISTRY_USERNAME }}
           password: ${{ secrets.REDHAT_REGISTRY_TOKEN }}
+
+      - name: Login to Tencent Cloud Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ccr.ccs.tencentyun.com
+          username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
+          password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
 
       - name: Build pgsql multi-arch image
         run: |
@@ -63,11 +63,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/pgsql:$POSTGRES_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/pgsql:$POSTGRES_VERSION-postgis-$TAG \
             --tag $REGISTRY_DOCKERHUB/pgsql:latest \
-            --tag $REGISTRY_TENCENT/pgsql:$POSTGRES_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/pgsql:$POSTGRES_VERSION-postgis-$TAG \
-            --tag $REGISTRY_TENCENT/pgsql:latest \
             --tag $REGISTRY_REDHAT/pgsql:$POSTGRES_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/pgsql:$POSTGRES_VERSION-postgis-$TAG \
             --tag $REGISTRY_REDHAT/pgsql:latest \
+            --tag $REGISTRY_TENCENT/pgsql:$POSTGRES_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/pgsql:$POSTGRES_VERSION-postgis-$TAG \
+            --tag $REGISTRY_TENCENT/pgsql:latest \
             --push \
             .

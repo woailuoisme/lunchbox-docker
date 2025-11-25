@@ -62,11 +62,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/php-base-fpm-xdebug:$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-fpm-xdebug:$PHP_VERSION-fpm-xdebug-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-fpm-xdebug:latest \
-            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:$PHP_VERSION-fpm-xdebug-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:latest \
             --tag $REGISTRY_REDHAT/php-base-fpm-xdebug:$PHP_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/php-base-fpm-xdebug:$PHP_VERSION-fpm-xdebug-$TAG \
             --tag $REGISTRY_REDHAT/php-base-fpm-xdebug:latest \
+            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:$PHP_VERSION-fpm-xdebug-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-fpm-xdebug:latest \
             --push \
             .

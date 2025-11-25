@@ -1,5 +1,5 @@
-# 阶段 1: 构建 Caddy
 FROM caddy:2.10.2-builder-alpine AS builder
+LABEL maintainer="seaside <531773730@qq.com>"
 
 # 运行 xcaddy build 来构建，不需要指定核心模块，它们会自动包含。
 RUN xcaddy build \

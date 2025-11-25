@@ -67,11 +67,11 @@ jobs:
             --tag $REGISTRY_DOCKERHUB/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
             --tag $REGISTRY_DOCKERHUB/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION \
             --tag $REGISTRY_DOCKERHUB/php-base-franken:latest \
-            --tag $REGISTRY_TENCENT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
-            --tag $REGISTRY_TENCENT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION \
-            --tag $REGISTRY_TENCENT/php-base-franken:latest \
             --tag $REGISTRY_REDHAT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
             --tag $REGISTRY_REDHAT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION \
             --tag $REGISTRY_REDHAT/php-base-franken:latest \
+            --tag $REGISTRY_TENCENT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION-$TAG \
+            --tag $REGISTRY_TENCENT/php-base-franken:$FRANKENPHP_VERSION-php$PHP_VERSION \
+            --tag $REGISTRY_TENCENT/php-base-franken:latest \
             --push \
             .
