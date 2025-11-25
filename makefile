@@ -264,6 +264,31 @@ check-caddy: ## Check Caddy service
 	@echo "🔍 Checking Caddy service..."
 	@docker compose ${DC_RUN_ARGS} exec caddy caddy validate --config /etc/caddy/Caddyfile
 
+trust-caddy-cert: ## Trust Caddy root certificate on macOS
+	@echo "🔐 Installing Caddy root certificate to macOS system keychain..."
+	@docker compose ${DC_RUN_ARGS} cp \
+		caddy:/data/caddy/pki/authorities/local/root.crt \
+		/tmp/root.crt \
+	&& sudo security add-trusted-cert -d -r trustRoot \
+		-k /Library/Keychains/System.keychain /tmp/root.crt
+	@echo "✅ Caddy root certificate installed successfully"
+
+trust-caddy-cert-linux: ## Trust Caddy root certificate on Linux
+	@echo "🔐 Installing Caddy root certificate on Linux..."
+	@docker compose ${DC_RUN_ARGS} cp \
+		caddy:/data/caddy/pki/authorities/local/root.crt \
+		/usr/local/share/ca-certificates/root.crt \
+	&& sudo update-ca-certificates
+	@echo "✅ Caddy root certificate installed successfully on Linux"
+
+trust-caddy-cert-windows: ## Trust Caddy root certificate on Windows
+	@echo "🔐 Installing Caddy root certificate on Windows..."
+	@docker compose ${DC_RUN_ARGS} cp \
+		caddy:/data/caddy/pki/authorities/local/root.crt \
+		%TEMP%/root.crt \
+	&& certutil -addstore -f "ROOT" %TEMP%/root.crt
+	@echo "✅ Caddy root certificate installed successfully on Windows"
+
 authelia-config-validate: ## Validate Authelia configuration
 	@echo "🔍 Validating Authelia configuration..."
 	@docker compose ${DC_RUN_ARGS} exec authelia authelia validate-config

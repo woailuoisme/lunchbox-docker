@@ -1,24 +1,4 @@
 {
-	email admin@example.com
-	# 启用通配符证书支持
-	#    acme_ca https://acme-v02.api.letsencrypt.org/directory
-	# 使用DNS挑战获取通配符证书
-	# acme_dns <provider> <credentials>
-	#    acme_dns alidns {
-	#        access_key_id {env.ALIYUN_ACCESS_KEY_ID}
-	#        access_key_secret {env.ALIYUN_ACCESS_KEY_SECRET}
-	#    }
-	#    tls {
-	#        dns cloudflare {env.CF_API_TOKEN}
-	#    }
-
-	# 全局启用 CrowdSec Bouncer（镜像已预装，直接用）
-	#	crowdsec_bouncer {
-	#		api_url http://crowdsec:8080
-	#		api_key a6F5e82zoV6tVueJo/m5mVxtbNgPKZ1cRQtyC2jvqO0
-	#		action block # 恶意请求返回 403
-	#		ticker_interval 5s # 5秒轮询一次黑名单
-	#	}
 	import snippets/global-log.conf
 }
 
