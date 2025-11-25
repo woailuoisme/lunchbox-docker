@@ -33,7 +33,7 @@ RUN set -eux; \
     apk add --no-cache \
     bash gettext postgresql17-client \
     icu-libs libzip libxml2 oniguruma zlib \
-    freetype libjpeg-turbo libpng \
+    freetype libjpeg-turbo libpng libwebp libavif \
     tzdata libffi \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache libpq; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache openldap; fi \
@@ -47,14 +47,14 @@ RUN set -eux; \
     && apk add --no-cache --virtual .build-deps \
     autoconf gcc g++ make pkgconfig linux-headers \
     mysql-dev \
-    freetype-dev libjpeg-turbo-dev libpng-dev \
+    freetype-dev libjpeg-turbo-dev libpng-dev libwebp-dev libavif-dev \
     oniguruma-dev libxml2-dev zlib-dev libzip-dev icu-dev \
     libffi-dev \
     && if [ "$WITH_PG" = "true" ]; then apk add --no-cache --virtual .pg-build postgresql-dev; fi \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache --virtual .ldap-build openldap-dev; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
     && if [ "$WITH_SWOOLE" = "true" ]; then apk add --no-cache --virtual .swoole-build openssl-dev; fi \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-avif \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
     && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif \
     && docker-php-ext-install -j"$(nproc)" ffi \
