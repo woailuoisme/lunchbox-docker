@@ -25,6 +25,8 @@ RUN mkdir -p /var/log/supervisor && \
 # 复制 supervisor 主配置文件
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
+COPY config/*.ini /usr/local/etc/php/conf.d/
+
 # 复制启动脚本
 COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
