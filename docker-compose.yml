@@ -57,6 +57,8 @@ services:
       - "443:443"
       - "443:443/udp"
       - "8080:8080"
+      - "45432:45432"
+      - "46379:46379"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}caddy:/etc/caddy
@@ -556,7 +558,7 @@ services:
 
   dozzle:
     container_name: dozzle
-    image: amir20/dozzle:latest
+    image: amir20/dozzle:v8.14
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -577,7 +579,7 @@ services:
 
   error-pages:
     container_name: error-pages
-    image: tarampampam/error-pages:3.7
+    image: tarampampam/error-pages:3.8
     restart: unless-stopped
     environment:
       - TEMPLATE_NAME=app-down
@@ -643,35 +645,35 @@ services:
   #      - backend
   #      - frontend
 
-  ntfy:
-    image: binwiederhier/ntfy
-    container_name: ntfy
-    command:
-      - serve
-    environment:
-      - TZ=Asia/Shanghai # optional: set desired timezone
-    volumes:
-      - ${DATA_PATH}ntfy:/var/cache/ntfy
-      - ${CONFIG_PATH}ntfy:/etc/ntfy
-    ports:
-      - "5580:80"
-    healthcheck: # optional: remember to adapt the host:port to your environment
-      test:
-        [
-          "CMD-SHELL",
-          "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1",
-        ]
-      interval: 60s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    restart: always
-    init: true # needed, if healthcheck is used. Prevents zombie processes
-    networks:
-      - backend
+#  ntfy:
+#    image: binwiederhier/ntfy
+#    container_name: ntfy
+#    command:
+#      - serve
+#    environment:
+#      - TZ=Asia/Shanghai # optional: set desired timezone
+#    volumes:
+#      - ${DATA_PATH}ntfy:/var/cache/ntfy
+#      - ${CONFIG_PATH}ntfy:/etc/ntfy
+#    ports:
+#      - "5580:80"
+#    healthcheck: # optional: remember to adapt the host:port to your environment
+#      test:
+#        [
+#          "CMD-SHELL",
+#          "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1",
+#        ]
+#      interval: 60s
+#      timeout: 10s
+#      retries: 3
+#      start_period: 40s
+#    restart: always
+#    init: true # needed, if healthcheck is used. Prevents zombie processes
+#    networks:
+#      - backend
 
   gotify:
-    image: gotify/server
+    image: gotify/server:2.7
     container_name: gotify
     ports:
       - "8380:80"
@@ -685,7 +687,7 @@ services:
       - backend
 
   docker-proxy:
-    image: ghcr.io/tecnativa/docker-socket-proxy:latest
+    image: tecnativa/docker-socket-proxy:v0.4.1
     container_name: docker-proxy
     environment:
       - CONTAINERS=1 # Allow access to viewing containers
@@ -695,7 +697,7 @@ services:
     ports:
       - "127.0.0.1:2375:2375"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro # Mounted as read-only
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: unless-stopped
     networks:
       - backend
