@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Laravel Octane with FrankenPHP 启动脚本
-# 使用 supervisor 统一管理所有进程
+# FrankenPHP 前台启动，supervisor 后台启动管理其他进程
 
 set -e
 
@@ -37,31 +37,54 @@ log_error() {
 readonly APP_PATH=${APP_PATH:-/var/www/lunchbox}
 readonly APP_ENV=${APP_ENV:-docker}
 readonly ENABLE_SUPERVISOR=${ENABLE_SUPERVISOR:-true}
+readonly ENABLE_REVERB=${ENABLE_REVERB:-true}
+readonly ENABLE_SCHEDULE=${ENABLE_SCHEDULE:-true}
+readonly ENABLE_HORIZON=${ENABLE_HORIZON:-true}
+readonly ENABLE_PULSE=${ENABLE_PULSE:-true}
+
+# 生成 laravel-cron 文件
+generate_cron_file() {
+    local cron_file="/tmp/laravel-cron"
+
+    log_info "生成 Laravel cron 配置文件..."
+
+    # 只有在启用调度器时才生成cron配置
+    if [ "$ENABLE_SCHEDULE" = "true" ]; then
+        cat > "${cron_file}" << EOF
+# 每分钟执行调度器
+* * * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:run
+
+# 每天凌晨清理调度器缓存（每天0点执行）
+0 0 * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:clear-cache
+EOF
+
+#        chmod 644 "${cron_file}"
+        log_success "已生成 cron 配置文件: ${cron_file}"
+    else
+        log_warning "调度器未启用，跳过生成 cron 配置"
+        # 如果文件存在但调度器被禁用，则删除文件
+        if [ -f "${cron_file}" ]; then
+            rm -f "${cron_file}"
+        fi
+    fi
+}
 
 # 动态生成 supervisor 配置文件
 generate_supervisor_config() {
     local config_dir="/usr/local/etc/supervisord.d"
-    local franken_config="${config_dir}/frankenphp.conf"
     local pulse_config="${config_dir}/pulse.check.conf"
+    local reverb_config="${config_dir}/reverb.conf"
+    local scheduler_config="${config_dir}/scheduler.conf"
+    local horizon_config="${config_dir}/horizon.conf"
 
     log_info "生成 supervisor 配置文件..."
 
-    # 创建 frankenphp.conf 配置文件
-    cat > "${franken_config}" << EOF
-[program:frankenphp]
-environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
-process_name = %(program_name)s_%(process_num)s
-command = php ${APP_PATH}/artisan octane:frankenphp --port=${APP_PORT} --host=${OCTANE_HOST} --workers=${OCTANE_WORKERS} --admin-port=${OCTANE_ADMIN_PORT} --max-requests=${OCTANE_MAX_REQUESTS} --env=${APP_ENV} --log-level=${OCTANE_LOG_LEVEL} $([ "${WATCH}" = "true" ] && echo "--watch") $([ "${OCTANE_POLL}" = "true" ] && echo "--poll") $([ "${OCTANE_HTTPS}" = "true" ] && echo "--https") $([ "${OCTANE_HTTP_REDIRECT}" = "true" ] && echo "--http-redirect")
-autostart = true
-autorestart = true
-stdout_logfile = /dev/stdout
-stdout_logfile_maxbytes = 0
-stderr_logfile = /dev/stderr
-stderr_logfile_maxbytes = 0
-EOF
+    # 清理旧的配置文件
+    rm -f "${config_dir}"/*.conf
 
-    # 创建 pulse.check.conf 配置文件
-    cat > "${pulse_config}" << EOF
+    # 只有在启用Pulse时才生成pulse配置
+    if [ "$ENABLE_PULSE" = "true" ]; then
+        cat > "${pulse_config}" << EOF
 [program:pulse]
 environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
 process_name = %(program_name)s_%(process_num)s
@@ -73,9 +96,72 @@ stdout_logfile_maxbytes = 0
 stderr_logfile = /dev/stderr
 stderr_logfile_maxbytes = 0
 EOF
+        log_success "已生成 pulse 配置文件"
+    else
+        log_warning "Pulse 未启用，跳过生成 pulse 配置"
+    fi
 
-    log_success "已生成 supervisor 配置文件"
-    log_info "进程配置: frankenphp, pulse"
+    # 只有在启用Reverb时才生成reverb配置
+    if [ "$ENABLE_REVERB" = "true" ]; then
+        cat > "${reverb_config}" << EOF
+[program:reverb]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = /usr/local/bin/php ${APP_PATH}/artisan reverb:start --host=0.0.0.0 --port=8080
+autostart = true
+autorestart = true
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+        log_success "已生成 reverb 配置文件"
+    else
+        log_warning "Reverb 未启用，跳过生成 reverb 配置"
+    fi
+
+    # 只有在启用调度器时才生成scheduler配置
+    if [ "$ENABLE_SCHEDULE" = "true" ]; then
+        cat > "${scheduler_config}" << EOF
+[program:scheduler]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = supercronic -overlapping /tmp/laravel-cron
+autostart = true
+autorestart = true
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+        log_success "已生成 scheduler 配置文件"
+    else
+        log_warning "调度器未启用，跳过生成 scheduler 配置"
+    fi
+
+    # 只有在启用Horizon时才生成horizon配置
+    if [ "$ENABLE_HORIZON" = "true" ]; then
+        cat > "${horizon_config}" << EOF
+[program:horizon]
+environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}"
+process_name = %(program_name)s_%(process_num)s
+command = /usr/local/bin/php ${APP_PATH}/artisan horizon
+autostart = true
+autorestart = true
+stdout_logfile = /dev/stdout
+stdout_logfile_maxbytes = 0
+stderr_logfile = /dev/stderr
+stderr_logfile_maxbytes = 0
+EOF
+        log_success "已生成 horizon 配置文件"
+    else
+        log_warning "Horizon 未启用，跳过生成 horizon 配置"
+    fi
+
+    # 显示生成的进程配置
+    local config_count=$(find "${config_dir}" -name "*.conf" 2>/dev/null | wc -l)
+    log_success "已生成 ${config_count} 个 supervisor 配置文件"
+    log_info "后台进程配置: $([ "$ENABLE_PULSE" = "true" ] && echo "pulse")$([ "$ENABLE_REVERB" = "true" ] && echo ", reverb")$([ "$ENABLE_SCHEDULE" = "true" ] && echo ", scheduler")$([ "$ENABLE_HORIZON" = "true" ] && echo ", horizon")"
 }
 
 # 检查 supervisor 配置
@@ -106,6 +192,10 @@ show_config() {
     log_info "应用路径: ${APP_PATH}"
     log_info "运行环境: ${APP_ENV}"
     log_info "启用 Supervisor: ${ENABLE_SUPERVISOR}"
+    log_info "启用 Reverb: ${ENABLE_REVERB}"
+    log_info "启用 Schedule: ${ENABLE_SCHEDULE}"
+    log_info "启用 Horizon: ${ENABLE_HORIZON}"
+    log_info "启用 Pulse: ${ENABLE_PULSE}"
     log_info "服务器: frankenphp"
     log_info "端口: ${APP_PORT}"
     log_info "监听地址: ${OCTANE_HOST}"
@@ -135,17 +225,18 @@ check_app_directory() {
     log_success "应用目录检查通过"
 }
 
-# 启动 supervisor
-start_supervisor() {
-    log_info "启动 supervisor 管理所有进程..."
+# 启动 supervisor（后台模式）
+start_supervisor_background() {
+    log_info "启动 supervisor 管理后台进程..."
 
-    # 动态生成 supervisor 配置文件
+    # 生成必要的配置文件
+    generate_cron_file
     generate_supervisor_config
 
     # 检查 supervisor 配置
     if ! check_supervisor_config; then
         log_error "supervisor 配置检查失败，无法启动"
-        exit 1
+        return 1
     fi
 
     # 显示 supervisor 配置信息
@@ -155,7 +246,7 @@ start_supervisor() {
     # 显示进程配置
     local config_files=$(find /usr/local/etc/supervisord.d -name "*.conf" 2>/dev/null)
     for config_file in $config_files; do
-        log_info "加载进程配置: $(basename $config_file)"
+        log_info "加载后台进程配置: $(basename $config_file)"
         # 显示进程配置详情
         if grep -q "^\[program:" "$config_file"; then
             local program_name=$(grep "^\[program:" "$config_file" | sed 's/\[program://;s/\]//')
@@ -165,16 +256,38 @@ start_supervisor() {
         fi
     done
 
-    # 在前台启动 supervisor
-    log_info "在前台模式启动 supervisord..."
-    exec supervisord -c /usr/local/etc/supervisord.conf -n
+    # 在后台启动 supervisor
+    log_info "在后台模式启动 supervisord..."
+    supervisord -c /usr/local/etc/supervisord.conf &
+    local supervisor_pid=$!
+
+    # 等待supervisord启动完成
+    sleep 3
+
+    # 检查supervisord是否正常运行
+    if kill -0 "$supervisor_pid" 2>/dev/null; then
+        log_success "supervisord 启动成功，PID: $supervisor_pid"
+
+        # 检查supervisord进程状态
+        sleep 2
+        if supervisorctl -c /usr/local/etc/supervisord.conf status >/dev/null 2>&1; then
+            log_success "supervisord 进程管理正常"
+            supervisorctl -c /usr/local/etc/supervisord.conf status
+        else
+            log_warning "supervisord 进程管理连接失败"
+        fi
+    else
+        log_error "supervisord 启动失败"
+        return 1
+    fi
 }
 
-# 直接运行 FrankenPHP（不使用 supervisor）
-start_direct() {
-    log_warning "Supervisor 未启用，将直接运行 FrankenPHP"
-    log_info "直接启动 octane:frankenphp"
+# 前台启动 FrankenPHP
+start_frankenphp_foreground() {
+    log_info "前台启动 FrankenPHP..."
     build_start_command_display
+
+    # 前台启动 FrankenPHP（主进程）
     exec php artisan octane:frankenphp \
         --port="${APP_PORT}" \
         --host="${OCTANE_HOST}" \
@@ -223,7 +336,7 @@ build_start_command_display() {
         log_info "启用 HTTP 到 HTTPS 重定向"
     fi
 
-    log_info "${command}"
+    log_info "前台进程命令: ${command}"
 }
 
 # 主函数
@@ -242,10 +355,18 @@ main() {
 
     # 检查是否启用 supervisor
     if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
-        start_supervisor
+        # 启动 supervisor 后台进程
+        if start_supervisor_background; then
+            log_success "后台进程管理已启动"
+        else
+            log_warning "后台进程管理启动失败，继续启动 FrankenPHP"
+        fi
     else
-        start_direct
+        log_warning "Supervisor 未启用，只启动 FrankenPHP"
     fi
+
+    # 前台启动 FrankenPHP（主进程）
+    start_frankenphp_foreground
 }
 
 # 捕获退出信号

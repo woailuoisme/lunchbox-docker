@@ -343,10 +343,12 @@ services:
       - APP_ENV=octane
       - APP_DEBUG=true
       - ENABLE_SUPERVISOR=false
+      - ENABLE_SCHEDULE=true
+      - ENABLE_HORIZON=true
+      - ENABLE_REVERB=false
       - WATCH=true
       - OCTANE_WORKERS=4
       - OCTANE_MAX_REQUESTS=300
-      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -359,6 +361,32 @@ services:
         condition: service_healthy
       php-reverb:
         condition: service_healthy
+
+#  php-octane:
+#    build:
+#      context: php-octane
+#    container_name: php-octane
+#    restart: always
+#    ports:
+#      - "8701:8001"
+#      - "2719:2019"
+#    volumes:
+#      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+#      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+#    environment:
+#      - APP_PATH=${APP_PATH}
+#      - APP_ENV=octane
+#      - APP_DEBUG=true
+#      - ENABLE_SUPERVISOR=false
+#      - WATCH=true
+#      - OCTANE_WORKERS=4
+#      - OCTANE_MAX_REQUESTS=300
+#      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
+#    networks:
+#      - backend
+#      - frontend
 
   postgres:
     build:
@@ -678,8 +706,8 @@ services:
     ports:
       - "8380:80"
     environment:
-      - GOTIFY_DEFAULTUSER_NAME=admin
-      - GOTIFY_DEFAULTUSER_PASS=admin
+      - GOTIFY_DEFAULTUSER_NAME=${GOTIFY_DEFAULTUSER_NAME}
+      - GOTIFY_DEFAULTUSER_PASS=${GOTIFY_DEFAULTUSER_PASS}
       - TZ="Asia/Shanghai"
     volumes:
       - "${DATA_PATH}gotify:/app/data"
@@ -720,6 +748,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
       - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
     restart: always
+    depends_on:
+      - docker-proxy
     networks:
       - frontend
       - backend

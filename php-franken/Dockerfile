@@ -15,6 +15,11 @@ ENV APP_PATH=/var/www/lunchbox \
     OCTANE_HTTPS=false \
     OCTANE_HTTP_REDIRECT=false \
     OCTANE_LOG_LEVEL=info \
+    ENABLE_SUPERVISOR=false \
+    ENABLE_HORIZON=true \
+    ENABLE_SCHEDULE=true \
+    ENABLE_REVERB=false \
+    ENABLE_PULSE=false \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 # 复制PHP配置
