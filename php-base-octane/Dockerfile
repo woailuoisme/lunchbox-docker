@@ -5,45 +5,33 @@
 FROM jiaoio/php-base-cli
 LABEL maintainer="seaside <531773730@qq.com>"
 
-# ============================================================================
-# 构建参数配置
-# ============================================================================
+# 环境变量配置
+ENV RR_VERSION=2025.1.5 \
+    FRANKENPHP_VERSION=1.9.1
 
-# 控制 APK 镜像源和可选功能
-ARG CHANGE_SOURCE=false
-ARG TIMEZONE=Asia/Shanghai
-
-# ============================================================================
-# 安装 Laravel Octane 所需组件
-# ============================================================================
-COPY download-frankenphp-docker.sh /tmp/download-frankenphp-docker.sh
+# 复制 FrankenPHP 下载脚本
+COPY download-frankenphp.sh /tmp/download-frankenphp.sh
 RUN chmod +x /tmp/download-frankenphp.sh
 
+# 安装 RoadRunner (暂时跳过)
+# RUN set -eux; \
+#     curl -L -o /tmp/rr.tar.gz \
+#     https://github.com/roadrunner-server/roadrunner/releases/download/v${RR_VERSION}/rr-${RR_VERSION}-linux-$(uname -m).tar.gz \
+#     && tar -xzf /tmp/rr.tar.gz -C /tmp/ \
+#     && mv /tmp/rr /usr/local/bin/rr \
+#     && chmod +x /usr/local/bin/rr \
+#     && rm -rf /tmp/rr.tar.gz
+
+# 安装 FrankenPHP
 RUN set -eux; \
-    if [ "$CHANGE_SOURCE" = "true" ]; then \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories; \
-    fi; \
-    apk add --no-cache --virtual .swoole-build openssl-dev \
-    && pecl install swoole \
-    && docker-php-ext-enable swoole \
-    && apk del .swoole-build \
-    && rm -rf /tmp/pear \
-    && curl -L -o /tmp/rr.tar.gz \
-    https://github.com/roadrunner-server/roadrunner/releases/download/v2025.1.5/roadrunner-2025.1.5-linux-$(uname -m).tar.gz \
-    && tar -xzf /tmp/rr.tar.gz -C /tmp/ \
-    && mv /tmp/roadrunner-2025.1.5-linux-$(uname -m)/rr /usr/local/bin/rr \
-    && chmod +x /usr/local/bin/rr \
-    && rm -rf /tmp/rr.tar.gz /tmp/roadrunner-2025.1.5-linux-$(uname -m) \
-    # 下载 FrankenPHP 二进制
-    && /tmp/download-frankenphp-docker.sh 1.10.1 \
-    && rm -f /tmp/download-frankenphp-docker.sh
+    /tmp/download-frankenphp.sh \
+    && rm -f /tmp/download-frankenphp.sh
 
 # ============================================================================
 # 验证安装
 # ============================================================================
 
-RUN rr --version \
-    && frankenphp --version \
+RUN frankenphp --version \
     && php -m | grep swoole
 
 # ============================================================================

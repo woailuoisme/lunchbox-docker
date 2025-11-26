@@ -6,7 +6,7 @@
 set -e
 
 # Default configuration
-VERSION="${1:-1.9.1}"
+VERSION="${1:-1.10.1}"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="frankenphp"
 
@@ -38,7 +38,13 @@ detect_platform() {
     # Detect architecture
     case "$(uname -m)" in
         x86_64|amd64) arch="x86_64" ;;
-        aarch64|arm64) arch="arm64" ;;
+        aarch64|arm64)
+            if [[ "$os" == "mac" ]]; then
+                arch="arm64"
+            else
+                arch="aarch64"
+            fi
+            ;;
         *) error "Unsupported architecture: $(uname -m)"; exit 1 ;;
     esac
 
@@ -89,10 +95,10 @@ usage() {
     echo "Download and install FrankenPHP binary."
     echo ""
     echo "Examples:"
-    echo "  $0              # Download v1.9.1"
-    echo "  $0 1.8.0        # Download v1.8.0"
+    echo "  $0              # Download v1.10.1"
+    echo "  $0 1.9.1        # Download v1.9.1"
     echo ""
-    echo "Available versions: 1.9.1, 1.9.0, 1.8.0, 1.7.0, 1.6.0"
+    echo "Available versions: 1.10.1, 1.9.1, 1.9.0, 1.8.0, 1.7.0, 1.6.0"
 }
 
 # Main function
@@ -144,28 +150,9 @@ main() {
         # Download binary to temp file first with progress
         info "Downloading from: $(echo "$DOWNLOAD_URL" | cut -d'/' -f1-5)..."
 
-    # Show spinner while downloading
-    show_spinner() {
-        local pid=$1
-        local delay=0.1
-        local spinstr='|/-\'
-        while kill -0 "$pid" 2>/dev/null; do
-            local temp=${spinstr#?}
-            printf "\r[%c] Downloading..." "$spinstr"
-            local spinstr=$temp${spinstr%"$temp"}
-            sleep $delay
-        done
-        printf "\r[✓] Download completed!    \n"
-    }
-
         if command -v curl >/dev/null 2>&1; then
-            # Download with curl and show spinner
-            curl -fL -o "$TEMP_FILE" "$DOWNLOAD_URL" &
-            local curl_pid=$!
-            show_spinner "$curl_pid"
-            wait "$curl_pid"
-
-            if [[ $? -eq 0 ]]; then
+            # Download with curl (no progress)
+            if curl -fL -o "$TEMP_FILE" "$DOWNLOAD_URL"; then
                 DOWNLOAD_SUCCESS=true
                 break
             else
@@ -173,8 +160,8 @@ main() {
                 rm -f "$TEMP_FILE"
             fi
         elif command -v wget >/dev/null 2>&1; then
-            # Download with wget and show progress
-            if wget -O "$TEMP_FILE" --progress=bar:force "$DOWNLOAD_URL"; then
+            # Download with wget (no progress)
+            if wget -O "$TEMP_FILE" "$DOWNLOAD_URL"; then
                 DOWNLOAD_SUCCESS=true
                 break
             else

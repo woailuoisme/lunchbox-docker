@@ -135,43 +135,6 @@ check_app_directory() {
     log_success "应用目录检查通过"
 }
 
-# 构建启动命令字符串（仅用于显示）
-build_start_command_display() {
-    local command="php artisan octane:frankenphp"
-
-    # 基本参数
-    command="${command} --port=${APP_PORT}"
-    command="${command} --host=${OCTANE_HOST}"
-    command="${command} --workers=${OCTANE_WORKERS}"
-    command="${command} --admin-port=${OCTANE_ADMIN_PORT}"
-    command="${command} --max-requests=${OCTANE_MAX_REQUESTS}"
-    command="${command} --env=${APP_ENV}"
-    command="${command} --log-level=${OCTANE_LOG_LEVEL}"
-
-    # 条件参数
-    if [ "${WATCH}" = "true" ]; then
-        command="${command} --watch"
-        log_info "启用文件监听模式"
-    fi
-
-    if [ "${OCTANE_POLL}" = "true" ]; then
-        command="${command} --poll"
-        log_info "启用网络文件轮询模式"
-    fi
-
-    if [ "${OCTANE_HTTPS}" = "true" ]; then
-        command="${command} --https"
-        log_info "启用 HTTPS/HTTP2/HTTP3"
-    fi
-
-    if [ "${OCTANE_HTTP_REDIRECT}" = "true" ]; then
-        command="${command} --http-redirect"
-        log_info "启用 HTTP 到 HTTPS 重定向"
-    fi
-
-    echo "${command}"
-}
-
 # 启动 supervisor
 start_supervisor() {
     log_info "启动 supervisor 管理所有进程..."
@@ -210,7 +173,8 @@ start_supervisor() {
 # 直接运行 FrankenPHP（不使用 supervisor）
 start_direct() {
     log_warning "Supervisor 未启用，将直接运行 FrankenPHP"
-    log_info "执行命令: php artisan octane:frankenphp"
+    log_info "直接启动 octane:frankenphp"
+    build_start_command_display
     exec php artisan octane:frankenphp \
         --port="${APP_PORT}" \
         --host="${OCTANE_HOST}" \
@@ -223,6 +187,43 @@ start_direct() {
         $([ "${OCTANE_POLL}" = "true" ] && echo "--poll") \
         $([ "${OCTANE_HTTPS}" = "true" ] && echo "--https") \
         $([ "${OCTANE_HTTP_REDIRECT}" = "true" ] && echo "--http-redirect")
+}
+
+# 构建启动命令字符串（仅用于显示）
+build_start_command_display() {
+    local command="php artisan octane:frankenphp"
+
+    # 基本参数
+    command="${command} --port=${APP_PORT}"
+    command="${command} --host=${OCTANE_HOST}"
+    command="${command} --workers=${OCTANE_WORKERS}"
+    command="${command} --admin-port=${OCTANE_ADMIN_PORT}"
+    command="${command} --max-requests=${OCTANE_MAX_REQUESTS}"
+    command="${command} --env=${APP_ENV}"
+    command="${command} --log-level=${OCTANE_LOG_LEVEL}"
+
+    # 条件参数
+    if [ "${WATCH}" = "true" ]; then
+        command="${command} --watch"
+        log_info "启用文件监听模式"
+    fi
+
+    if [ "${OCTANE_POLL}" = "true" ]; then
+        command="${command} --poll"
+        log_info "启用网络文件轮询模式"
+    fi
+
+    if [ "${OCTANE_HTTPS}" = "true" ]; then
+        command="${command} --https"
+        log_info "启用 HTTPS/HTTP2/HTTP3"
+    fi
+
+    if [ "${OCTANE_HTTP_REDIRECT}" = "true" ]; then
+        command="${command} --http-redirect"
+        log_info "启用 HTTP 到 HTTPS 重定向"
+    fi
+
+    log_info "${command}"
 }
 
 # 主函数

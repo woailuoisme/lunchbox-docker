@@ -173,7 +173,8 @@ start_supervisor() {
 # 直接运行 FrankenPHP（不使用 supervisor）
 start_direct() {
     log_warning "Supervisor 未启用，将直接运行 FrankenPHP"
-    log_info "执行命令: php artisan octane:frankenphp"
+    log_info "直接启动 octane:frankenphp"
+    build_start_command_display
     exec php artisan octane:frankenphp \
         --port="${APP_PORT}" \
         --host="${OCTANE_HOST}" \
@@ -222,7 +223,7 @@ build_start_command_display() {
         log_info "启用 HTTP 到 HTTPS 重定向"
     fi
 
-    echo "${command}"
+    log_info "${command}"
 }
 
 # 主函数
