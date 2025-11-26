@@ -244,8 +244,8 @@ services:
 
   php-fpm:
     build:
-      #      context: ./php-fpm
-      context: ./php-fpm-xdebug
+      context: ./php-fpm
+#      context: ./php-fpm-xdebug
       dockerfile: Dockerfile
       args:
         - CHANGE_SOURCE=${CHANGE_SOURCE}
@@ -328,8 +328,8 @@ services:
 
   php-franken:
     build:
+#      context: php-franken
       context: php-franken-xdebug
-    #      context: php-franken
     container_name: php-franken
     restart: always
     ports:

@@ -386,3 +386,6 @@ build-base:
 
 php-fpm-gd:
 	docker exec php-fpm php -r "var_dump(gd_info());"
+
+php-franken-gd:
+	docker exec php-franken php -r "var_dump(gd_info());"
