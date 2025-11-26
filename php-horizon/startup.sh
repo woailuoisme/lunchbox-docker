@@ -5,11 +5,20 @@
 
 # 健康检查函数 - 检测 Horizon 进程是否运行
 health_check() {
-    # 检查 Horizon 进程是否在运行
-    if pgrep -f "php.*artisan.*horizon" > /dev/null; then
-        return 0
+    if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
+        # Supervisor 模式下的健康检查
+        if supervisorctl status horizon | grep -q "RUNNING"; then
+            return 0
+        else
+            return 1
+        fi
     else
-        return 1
+        # 直接启动模式下的健康检查
+        if pgrep -f "php.*artisan.*horizon" > /dev/null; then
+            return 0
+        else
+            return 1
+        fi
     fi
 }
 
@@ -46,6 +55,7 @@ log_error() {
 # 全局变量
 readonly APP_PATH=${APP_PATH:-/var/www/lunchbox}
 readonly APP_ENV=${APP_ENV:-docker}
+readonly ENABLE_SUPERVISOR=${ENABLE_SUPERVISOR:-false}
 
 # 检查应用目录
 check_app_directory() {
@@ -74,32 +84,18 @@ check_horizon_config() {
     fi
 
     # 检查是否安装了 horizon
-    log_info "执行 Horizon 状态检查..."
-    if ! php "${APP_PATH}/artisan" horizon:status > /dev/null 2>&1; then
-        log_error "Laravel Horizon 未正确安装或配置"
-        log_info "请确保已运行: composer require laravel/horizon"
-        log_info "检查 vendor 目录中是否有 horizon 包..."
-        if [ -d "${APP_PATH}/vendor/laravel/horizon" ]; then
-            log_success "Horizon 包已安装"
-            log_info "检查 Horizon 配置文件..."
-            if [ -f "${APP_PATH}/config/horizon.php" ]; then
-                log_success "Horizon 配置文件存在"
-                log_info "检查 artisan 命令是否可用..."
-                if php "${APP_PATH}/artisan" --version > /dev/null 2>&1; then
-                    log_success "artisan 命令可用"
-                    log_info "尝试手动执行 horizon:status 命令获取详细错误..."
-                    php "${APP_PATH}/artisan" horizon:status
-                else
-                    log_error "artisan 命令不可用"
-                fi
-            else
-                log_error "Horizon 配置文件不存在"
-            fi
-        else
-            log_error "Horizon 包未安装，请运行: composer require laravel/horizon"
-        fi
+    if [ ! -d "${APP_PATH}/vendor/laravel/horizon" ]; then
+        log_error "Horizon 包未安装，请运行: composer require laravel/horizon"
         exit 1
     fi
+    log_success "Horizon 包已安装"
+
+    # 检查 artisan 命令是否可用
+    if ! php "${APP_PATH}/artisan" --version > /dev/null 2>&1; then
+        log_error "artisan 命令不可用"
+        exit 1
+    fi
+    log_success "artisan 命令可用"
 
     log_success "Laravel Horizon 配置检查通过"
 }
@@ -109,7 +105,12 @@ show_config() {
     log_info "=== Laravel Horizon 启动配置 ==="
     log_info "应用路径: ${APP_PATH}"
     log_info "运行环境: ${APP_ENV}"
-    log_info "启动命令: php artisan horizon"
+    log_info "Supervisor 模式: ${ENABLE_SUPERVISOR}"
+    if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
+        log_info "启动命令: supervisorctl start horizon"
+    else
+        log_info "启动命令: php ${APP_PATH}/artisan horizon --env=${APP_ENV}"
+    fi
     log_info "=================================="
 }
 
@@ -121,16 +122,23 @@ start_horizon() {
     cd "${APP_PATH}"
     log_info "切换到应用目录: $(pwd)"
 
-    # 显示 Horizon 状态
-    log_info "检查当前 Horizon 状态..."
-    php artisan horizon:status
+    if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
+        # Supervisor 模式
+        log_info "Supervisor 模式已启用"
+        log_info "执行命令: supervisorctl start horizon"
+        log_info "Horizon 将由 Supervisor 管理"
 
-    # 启动 Horizon
-    log_info "执行命令: php artisan horizon"
-    log_info "Horizon 将在前台运行，按 Ctrl+C 停止"
+        # 启动 Supervisor 服务
+        exec supervisord -n -c /etc/supervisor/supervisord.conf
+    else
+        # 直接启动模式
+        log_info "直接启动模式"
+        log_info "执行命令: php ${APP_PATH}/artisan horizon --env=${APP_ENV}"
+        log_info "Horizon 将在前台运行，按 Ctrl+C 停止"
 
-    # 在前台启动 Horizon
-    exec php artisan horizon
+        # 在前台启动 Horizon
+        exec php "${APP_PATH}/artisan" horizon --env="${APP_ENV}"
+    fi
 }
 
 # 健康检查入口点

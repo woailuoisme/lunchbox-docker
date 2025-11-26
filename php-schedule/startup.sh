@@ -57,14 +57,17 @@ check_app_directory() {
 generate_cron_file() {
     local cron_file="/usr/local/etc/laravel-cron"
 
+    # 确保目录存在
+    mkdir -p /usr/local/etc
+
     log_info "生成 Laravel cron 配置文件..."
 
     cat > "${cron_file}" << EOF
 # 每分钟执行调度器
-* * * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:run
+* * * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:run --env=${APP_ENV}
 
 # 每天凌晨清理调度器缓存（每天0点执行）
-0 0 * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:clear-cache
+0 0 * * * /usr/local/bin/php ${APP_PATH}/artisan schedule:clear-cache --env=${APP_ENV}
 EOF
 
     chmod +x "${cron_file}"
@@ -76,6 +79,9 @@ EOF
 generate_supervisor_config() {
     local config_dir="/usr/local/etc/supervisord.d"
     local scheduler_config="${config_dir}/scheduler.conf"
+
+    # 确保目录存在
+    mkdir -p "$config_dir"
 
     log_info "生成 supervisor scheduler 配置文件..."
 
@@ -132,9 +138,6 @@ show_config() {
 start_supervisor() {
     log_info "启动 supervisor 管理定时任务进程..."
 
-    # 生成 cron 配置文件
-    generate_cron_file
-
     # 动态生成 supervisor 配置文件
     generate_supervisor_config
 
@@ -168,30 +171,20 @@ start_supervisor() {
 
 # 直接运行定时任务（不使用 supervisor）
 start_direct() {
-    log_warning "Supervisor 未启用，将直接运行定时任务"
-    log_info "生成 Laravel cron 配置文件..."
-
-    generate_cron_file
-
     log_info "启动 supercronic 执行定时任务..."
     log_info "执行命令: supercronic -overlapping /usr/local/etc/laravel-cron"
-    exec supercronic -overlapping /usr/local/etc/laravel-cron
+    exec /usr/local/bin/supercronic -overlapping /usr/local/etc/laravel-cron
 }
 
 # 主函数
 main() {
     log_info "启动 Laravel Schedule 服务..."
-
+     # 生成 cron 配置文件
+    generate_cron_file
     # 显示配置
     show_config
-
     # 检查应用目录
     check_app_directory
-
-    # 切换到应用目录
-    cd "${APP_PATH}"
-    log_info "切换到应用目录: $(pwd)"
-
     # 检查是否启用 supervisor
     if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
         start_supervisor

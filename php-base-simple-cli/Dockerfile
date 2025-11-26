@@ -20,7 +20,8 @@ ARG WWWGROUP=33
 ARG WITH_PG=true
 ARG WITH_AMQP=true
 ARG WITH_LDAP=false
-ARG WITH_SWOOLE=true
+ARG WITH_SWOOLE=false
+ARG SUPERCRONIC_VERSION=0.2.39
 
 # ============================================================================
 # 系统依赖安装和PHP扩展编译（合并为单个RUN指令以减少层数）
@@ -76,7 +77,7 @@ RUN set -eux; \
     && strip --strip-all $(which php) 2>/dev/null || true \
     && curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc  \
     && chmod +x /usr/local/bin/mc \
-    && curl -sSL -o /usr/local/bin/supercronic https://github.com/aptible/supercronic/releases/download/v0.2.34/supercronic-linux-amd64 \
+    && curl -sSL -o /usr/local/bin/supercronic https://github.com/aptible/supercronic/releases/download/v${SUPERCRONIC_VERSION}/supercronic-linux-amd64 \
     && chmod +x /usr/local/bin/supercronic
 
 # ============================================================================

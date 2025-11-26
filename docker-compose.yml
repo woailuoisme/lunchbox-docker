@@ -50,8 +50,8 @@ services:
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
       - CADDY_ADMIN=0.0.0.0:2019
-      - CROWDSEC_BOUNCER_API_URL=http://crowdsec:8080  # 内网访问 CrowdSec
-      - CROWDSEC_BOUNCER_API_KEY=""  # 留空，启动后自动注册密钥
+      - CROWDSEC_BOUNCER_API_URL=http://crowdsec:8080 # 内网访问 CrowdSec
+      - CROWDSEC_BOUNCER_API_KEY="" # 留空，启动后自动注册密钥
     ports:
       - "80:80"
       - "443:443"
@@ -75,32 +75,32 @@ services:
       - frontend
       - backend
 
-#  crowdsec:
-#    image: crowdsecurity/crowdsec:latest
-#    container_name: crowdsec
-#    restart: always
-#    environment:
-#      TZ: Asia/Shanghai
-#      DOCKER_HOST: tcp://docker-proxy:2375
-#      GID: "${GID-1000}"
-##      DOCKER_HOST: tcp://docker-proxy:2375
-#      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia # Caddy 专用检测规则
-#    volumes:
-#      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
-#      - ${CONFIG_PATH}crowdsec/acquis.d:/etc/crowdsec/acquis.d
-#      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
-#      - ${CONFIG_PATH}/acquis.d:/etc/crowdsec/acquis.d
-##      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
-#      - ${CONFIG_PATH}crowdsec/acquis.yml:/etc/crowdsec/acquis.yaml
-##      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
-#    ports:
-#      - "8680:8080"
-#      - "6660:6060"
-#    healthcheck:
-#      test: ["CMD", "cscli", "version"]
-#    networks:
-#      - backend
-#      - frontend
+  #  crowdsec:
+  #    image: crowdsecurity/crowdsec:latest
+  #    container_name: crowdsec
+  #    restart: always
+  #    environment:
+  #      TZ: Asia/Shanghai
+  #      DOCKER_HOST: tcp://docker-proxy:2375
+  #      GID: "${GID-1000}"
+  ##      DOCKER_HOST: tcp://docker-proxy:2375
+  #      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia # Caddy 专用检测规则
+  #    volumes:
+  #      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
+  #      - ${CONFIG_PATH}crowdsec/acquis.d:/etc/crowdsec/acquis.d
+  #      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+  #      - ${CONFIG_PATH}/acquis.d:/etc/crowdsec/acquis.d
+  ##      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+  #      - ${CONFIG_PATH}crowdsec/acquis.yml:/etc/crowdsec/acquis.yaml
+  ##      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
+  #    ports:
+  #      - "8680:8080"
+  #      - "6660:6060"
+  #    healthcheck:
+  #      test: ["CMD", "cscli", "version"]
+  #    networks:
+  #      - backend
+  #      - frontend
 
   #  dnsmasq:
   #    container_name: dnsmasq
@@ -245,7 +245,7 @@ services:
   php-fpm:
     build:
       context: ./php-fpm
-#      context: ./php-fpm-xdebug
+      #      context: ./php-fpm-xdebug
       dockerfile: Dockerfile
       args:
         - CHANGE_SOURCE=${CHANGE_SOURCE}
@@ -261,7 +261,9 @@ services:
       - APP_PATH=${APP_PATH}
       - APP_ENV=fpm
       - APP_DEBUG=true
-      - ENABLE_SUPERVISOR=true
+      - ENABLE_SUPERVISOR=false
+      - ENABLE_SCHEDULE=true
+      - ENABLE_HORIZON=true
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -295,6 +297,7 @@ services:
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -321,6 +324,7 @@ services:
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -329,7 +333,7 @@ services:
   php-franken:
     build:
       context: php-franken
-#      context: php-franken-xdebug
+    #      context: php-franken-xdebug
     container_name: php-franken
     restart: always
     ports:
@@ -362,31 +366,31 @@ services:
       php-reverb:
         condition: service_healthy
 
-#  php-octane:
-#    build:
-#      context: php-octane
-#    container_name: php-octane
-#    restart: always
-#    ports:
-#      - "8701:8001"
-#      - "2719:2019"
-#    volumes:
-#      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-#      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
-#    environment:
-#      - APP_PATH=${APP_PATH}
-#      - APP_ENV=octane
-#      - APP_DEBUG=true
-#      - ENABLE_SUPERVISOR=false
-#      - WATCH=true
-#      - OCTANE_WORKERS=4
-#      - OCTANE_MAX_REQUESTS=300
-#      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
-#    extra_hosts:
-#      - "host.docker.internal:host-gateway"
-#    networks:
-#      - backend
-#      - frontend
+  #  php-octane:
+  #    build:
+  #      context: php-octane
+  #    container_name: php-octane
+  #    restart: always
+  #    ports:
+  #      - "8701:8001"
+  #      - "2719:2019"
+  #    volumes:
+  #      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+  #      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+  #    environment:
+  #      - APP_PATH=${APP_PATH}
+  #      - APP_ENV=octane
+  #      - APP_DEBUG=true
+  #      - ENABLE_SUPERVISOR=false
+  #      - WATCH=true
+  #      - OCTANE_WORKERS=4
+  #      - OCTANE_MAX_REQUESTS=300
+  #      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
+  #    extra_hosts:
+  #      - "host.docker.internal:host-gateway"
+  #    networks:
+  #      - backend
+  #      - frontend
 
   postgres:
     build:
@@ -673,32 +677,32 @@ services:
   #      - backend
   #      - frontend
 
-#  ntfy:
-#    image: binwiederhier/ntfy
-#    container_name: ntfy
-#    command:
-#      - serve
-#    environment:
-#      - TZ=Asia/Shanghai # optional: set desired timezone
-#    volumes:
-#      - ${DATA_PATH}ntfy:/var/cache/ntfy
-#      - ${CONFIG_PATH}ntfy:/etc/ntfy
-#    ports:
-#      - "5580:80"
-#    healthcheck: # optional: remember to adapt the host:port to your environment
-#      test:
-#        [
-#          "CMD-SHELL",
-#          "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1",
-#        ]
-#      interval: 60s
-#      timeout: 10s
-#      retries: 3
-#      start_period: 40s
-#    restart: always
-#    init: true # needed, if healthcheck is used. Prevents zombie processes
-#    networks:
-#      - backend
+  #  ntfy:
+  #    image: binwiederhier/ntfy
+  #    container_name: ntfy
+  #    command:
+  #      - serve
+  #    environment:
+  #      - TZ=Asia/Shanghai # optional: set desired timezone
+  #    volumes:
+  #      - ${DATA_PATH}ntfy:/var/cache/ntfy
+  #      - ${CONFIG_PATH}ntfy:/etc/ntfy
+  #    ports:
+  #      - "5580:80"
+  #    healthcheck: # optional: remember to adapt the host:port to your environment
+  #      test:
+  #        [
+  #          "CMD-SHELL",
+  #          "wget -q --tries=1 http://localhost:80/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1",
+  #        ]
+  #      interval: 60s
+  #      timeout: 10s
+  #      retries: 3
+  #      start_period: 40s
+  #    restart: always
+  #    init: true # needed, if healthcheck is used. Prevents zombie processes
+  #    networks:
+  #      - backend
 
   gotify:
     image: gotify/server:2.7

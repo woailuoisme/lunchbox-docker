@@ -6,6 +6,9 @@ ENV APP_PATH=/var/www/lunchbox \
     APP_ENV=docker \
     CHANGE_SOURCE=true \
     ENABLE_SUPERVISOR=true \
+    SENTRY-DSN='' \
+    SENTRY-ENVIRONMENT='' \
+    SENTRY-RELEASE='' \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 RUN if [ ${CHANGE_SOURCE} = true ]; then \
@@ -13,7 +16,7 @@ RUN if [ ${CHANGE_SOURCE} = true ]; then \
     fi
 
 # 安装 supervisor 和 supercronic (Alpine Linux)
-RUN apk update && apk add --no-cache supervisor supercronic && \
+RUN apk update && apk add --no-cache supervisor && \
     rm -rf /var/cache/apk/*
 
 # 创建必要的 supervisor 目录
