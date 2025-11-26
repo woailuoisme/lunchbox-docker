@@ -9,6 +9,7 @@ php-base-fpm-xdebug
 php-base-franken
 php-base-franken-xdebug
 php-base-simple-cli
+php-base-octane
 
 # PHP 应用镜像
 php-fpm
