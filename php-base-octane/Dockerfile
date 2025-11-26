@@ -1,4 +1,4 @@
-FROM ghcr.io/roadrunner-server/roadrunner:2025.X.X AS roadrunner
+FROM ghcr.io/roadrunner-server/roadrunner:v2025.1.5 AS roadrunner
 FROM jiaoio/php-base-cli
 
 RUN apk add --no-cache --virtual .swoole-build openssl-dev \
