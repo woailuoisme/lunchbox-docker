@@ -6,7 +6,7 @@
 set -e
 
 # Default configuration
-VERSION="${1:-1.10.1}"
+FRANKENPHP_VERSION="${1:-1.10.1}"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="frankenphp"
 
