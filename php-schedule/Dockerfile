@@ -5,7 +5,7 @@ ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=docker \
     CHANGE_SOURCE=true \
-    ENABLE_SUPERVISOR=true \
+    ENABLE_SUPERVISOR=false \
     SENTRY-DSN='' \
     SENTRY-ENVIRONMENT='' \
     SENTRY-RELEASE='' \
@@ -37,4 +37,4 @@ RUN chmod +x /usr/local/bin/startup.sh
 CMD ["/usr/local/bin/startup.sh"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD ps aux | grep -q "[s]upervisord" || exit 1
+    CMD /usr/local/bin/startup.sh healthcheck

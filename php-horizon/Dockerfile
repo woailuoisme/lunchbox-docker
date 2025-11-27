@@ -5,7 +5,7 @@ ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=docker \
     CHANGE_SOURCE=true \
-    ENABLE_SUPERVISOR=true \
+    ENABLE_SUPERVISOR=false \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 RUN if [ ${CHANGE_SOURCE} = true ]; then \

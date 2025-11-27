@@ -311,6 +311,7 @@ services:
     environment:
       - APP_PATH=${APP_PATH}
       - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
     networks:
@@ -617,6 +618,7 @@ services:
       - TEMPLATE_NAME=app-down
       - SHOW_DETAILS=true
       - TZ=Asia/Shanghai
+      - HTTP_PORT=8080
     ports:
       - "8580:8080"
     #    depends_on:

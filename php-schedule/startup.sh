@@ -5,6 +5,16 @@
 
 set -e
 
+# 健康检查函数 - 检测 supercronic 进程是否运行
+health_check() {
+    # 检查 supercronic 进程是否在运行
+    if pgrep -f "supercronic.*laravel-cron" > /dev/null; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # 颜色定义
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -195,6 +205,17 @@ main() {
 
 # 捕获退出信号
 trap 'log_warning "接收到终止信号，正在停止服务..."; exit 0' SIGTERM SIGINT
+
+# 健康检查入口点
+if [ "$1" = "healthcheck" ]; then
+    if health_check; then
+        echo "supercronic is running"
+        exit 0
+    else
+        echo "supercronic is not running"
+        exit 1
+    fi
+fi
 
 # 运行主函数
 main "$@"
