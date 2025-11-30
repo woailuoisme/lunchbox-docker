@@ -334,7 +334,6 @@ services:
   php-franken:
     build:
       context: php-franken
-    #      context: php-franken-xdebug
     container_name: php-franken
     restart: always
     ports:
@@ -352,6 +351,7 @@ services:
       - ENABLE_HORIZON=true
       - ENABLE_REVERB=false
       - WATCH=true
+      - OCTANE_POLL=true
       - OCTANE_WORKERS=4
       - OCTANE_MAX_REQUESTS=300
     extra_hosts:
@@ -800,3 +800,16 @@ services:
 #secrets:
 #  users:
 #    file: users.yml
+
+
+volumes:
+  app_code:
+    name: app_code_volume
+    driver: local
+    driver_opts:
+      # 必须指定 type: bind 绑定挂载
+      type: bind
+      # 在这里指定主机上的绝对路径
+      source: ${APP_CODE_PATH}
+      # 确保 mode 为读写 (rw)
+      o: bind,rw
