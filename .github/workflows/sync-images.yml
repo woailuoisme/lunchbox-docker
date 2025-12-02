@@ -49,6 +49,15 @@ jobs:
             exit 1
           fi
 
+          # 设置TCR registry地址，如果secret为空则使用默认值
+          TCR_REGISTRY="${{ secrets.TCR_REGISTRY }}"
+          if [ -z "$TCR_REGISTRY" ]; then
+            echo "⚠️ TCR_REGISTRY secret为空，使用默认值: ccr.ccs.tencentyun.com"
+            TCR_REGISTRY="ccr.ccs.tencentyun.com"
+          else
+            echo "✅ 使用TCR_REGISTRY: $TCR_REGISTRY"
+          fi
+
           echo "📋 开始同步镜像列表..."
 
           # 统计变量
@@ -102,7 +111,7 @@ jobs:
               fi
 
               SOURCE_IMAGE="docker://${DOCKER_HUB_REPO}/${IMAGE_NAME}:${TAG}"
-              TARGET_IMAGE="docker://${{ secrets.TCR_REGISTRY }}/${TCR_NAMESPACE}/${IMAGE_NAME}:${TAG}"
+              TARGET_IMAGE="docker://${TCR_REGISTRY}/${TCR_NAMESPACE}/${IMAGE_NAME}:${TAG}"
 
               echo "--- 🔄 正在同步: ${IMAGE_NAME}:${TAG} ---"
               echo "源镜像: ${SOURCE_IMAGE}"
