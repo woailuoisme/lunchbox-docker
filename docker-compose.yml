@@ -796,6 +796,29 @@ services:
 #    networks:
 #      - frontend
 #      - backend
+  pgadmin:
+    image: dpage/pgadmin4:9
+    container_name: pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    volumes:
+      - ${DATA_PATH}pgadmin:/var/lib/pgadmin
+    networks:
+      - backend
+
+  redis-insight:
+    container_name: redis-insight
+    image: redis/redisinsight:latest
+    restart: always
+    command: -v ${DATA_PATH}redisinsight:/data
+    ports:
+      - "5540:5540"
+    networks:
+      - backend
 
 #secrets:
 #  users:

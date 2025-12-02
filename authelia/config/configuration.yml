@@ -15,7 +15,6 @@ identity_validation:
 server:
   # 地址格式: tcp://[hostname]:[port]
   address: "tcp://0.0.0.0:9091"
-  # 必需的NGINX集成端点配置
   endpoints:
     authz:
       auth-request:
@@ -97,7 +96,6 @@ password_policy:
 access_control:
   # 默认策略: bypass, one_factor, two_factor 或 deny
   default_policy: deny
-
   # 访问控制规则
   rules:
     # bypass rule
