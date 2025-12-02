@@ -28,10 +28,10 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # --- 2. 登录腾讯云 TCR ---
-      - name: 🔐 Login to Tencent Cloud Registry (TCR)
+      - name: Login to Tencent Cloud Registry
         uses: docker/login-action@v3
         with:
-          registry: jiaoio
+          registry: ccr.ccs.tencentyun.com
           username: ${{ secrets.TENCENT_REGISTRY_USERNAME }}
           password: ${{ secrets.TENCENT_REGISTRY_PASSWORD }}
 
