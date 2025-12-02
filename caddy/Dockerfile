@@ -1,4 +1,4 @@
-FROM jiaoio/caddy-base:2.10.2-latest
+FROM jiaoio/caddy-base:latest
 
 COPY sites /etc/caddy/sites
 COPY snippets /etc/caddy/snippets
