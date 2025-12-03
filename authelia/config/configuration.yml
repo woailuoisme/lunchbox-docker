@@ -22,9 +22,9 @@ server:
       forward-auth:
         implementation: "ForwardAuth"
       ext-authz:
-        implementation: 'ExtAuthz'
+        implementation: "ExtAuthz"
       legacy:
-        implementation: 'Legacy'
+        implementation: "Legacy"
 
 # ==========================================================================
 # 日志配置
@@ -49,7 +49,6 @@ totp:
   period: 30
   # 位数
   digits: 6
-
 
 # ==========================================================================
 # 认证后端配置
@@ -102,14 +101,26 @@ access_control:
         - 'auth.{{ env "DOMAIN" }}'
       policy: "bypass"
     - domain:
+        - 'fpm.{{ env "DOMAIN" }}'
+      resources:
+        - "^/docs(/.*)?$"
+      policy: "one_factor"
+      subject:
+        - "group:user"
+    - domain:
+        - 'fpm.{{ env "DOMAIN" }}'
+      resources:
+        - "^/horizon(/.*)?$"
+        - "^/log-viewer(/.*)?$"
+      policy: "one_factor"
+      subject:
+        - "group:admin"
+    - domain:
         - '{{ env "DOMAIN" }}'
         - '*.{{ env "DOMAIN" }}'
       policy: "one_factor"
       subject:
-        - [ 'user:john' ]
-        - [ 'group:admin', 'group:app-name' ]
-        - [ 'group:super-admin' ]
-
+        - "group:admin"
 # ==========================================================================
 # 会话配置
 # ==========================================================================
@@ -120,9 +131,9 @@ session:
   # 会话名称
   name: "authelia_session"
   # 不活动超时时间
-  inactivity: "5m"
+  inactivity: "60m"
   # 会话过期时间
-  expiration: "1h"
+  expiration: "3h"
   # 记住我功能
   remember_me: "1M"
   # Cookie 配置

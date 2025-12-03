@@ -9,7 +9,6 @@ import fpm-app-auth fpm.{$SITE_ADDRESS} /var/www/lunchbox
 #import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
 import proxy-octane-app-auth octane.{$SITE_ADDRESS} php-franken:8001
 
-#import proxy-reverb ws.{$SITE_ADDRESS} php-reverb:8080
 #import proxy-app auth.{$SITE_ADDRESS} authelia:9091
 import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
 

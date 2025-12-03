@@ -2,7 +2,7 @@
 # 根据 configuration.yml 配置生成的用户
 # 密码策略: 最小8位，包含大写字母、数字和特殊字符
 # 密码哈希算法: Argon2id (推荐的安全哈希算法)
-# docker run --rm authelia/authelia:4.39 authelia crypto hash generate argon2 --password 'User123!' 
+# docker run --rm authelia/authelia:4.39 authelia crypto hash generate argon2 --password 'User123!'
 users:
   # 管理员用户
   admin:
@@ -13,8 +13,8 @@ users:
     email: admin@jso.lol
     groups:
       - admin
-      - users
-  
+      - user
+
   # 普通用户
   user:
     disabled: false
@@ -23,4 +23,4 @@ users:
     password: "$argon2id$v=19$m=65536,t=3,p=4$0WXsk9oIUar9Wqwj8z6c0g$yUtxJeijRskYul/3JOJU9hzXLuHXwh/RMbs62pb2yBk"
     email: user@jso.lol
     groups:
-      - users
+      - user

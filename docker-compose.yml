@@ -820,6 +820,17 @@ services:
     networks:
       - backend
 
+  postgresus:
+    container_name: postgresus
+    image: rostislavdugin/postgresus:latest
+    ports:
+      - "4005:4005"
+    volumes:
+      - ${DATA_PATH}postgresus-data:/postgresus-data
+    restart: unless-stopped
+    networks:
+      - backend
+
 #secrets:
 #  users:
 #    file: users.yml
