@@ -21,6 +21,7 @@ ARG WITH_PG=true
 ARG WITH_AMQP=true
 ARG WITH_LDAP=false
 ARG WITH_SWOOLE=false
+ARG WITH_UV=true
 
 # ============================================================================
 # 系统依赖安装和PHP扩展编译（合并为单个RUN指令以减少层数）
@@ -39,6 +40,7 @@ RUN set -eux; \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache openldap; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache rabbitmq-c; fi \
     && if [ "$WITH_SWOOLE" = "true" ]; then apk add --no-cache openssl; fi \
+    && if [ "$WITH_UV" = "true" ]; then apk add --no-cache libuv; fi \
     && ln -snf /usr/share/zoneinfo/${TIMEZONE} /etc/localtime \
     && echo "${TIMEZONE}" > /etc/timezone \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer \
@@ -54,6 +56,7 @@ RUN set -eux; \
     && if [ "$WITH_LDAP" = "true" ]; then apk add --no-cache --virtual .ldap-build openldap-dev; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk add --no-cache --virtual .amqp-build rabbitmq-c-dev; fi \
     && if [ "$WITH_SWOOLE" = "true" ]; then apk add --no-cache --virtual .swoole-build openssl-dev; fi \
+    && if [ "$WITH_UV" = "true" ]; then apk add --no-cache --virtual .uv-build libuv-dev; fi \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp --with-avif \
     && if [ "$WITH_LDAP" = "true" ]; then docker-php-ext-configure ldap; fi \
     && docker-php-ext-install -j"$(nproc)" pdo pdo_mysql gd mbstring xml simplexml zip intl bcmath pcntl sockets exif ffi \
@@ -62,6 +65,7 @@ RUN set -eux; \
     && pecl install redis && docker-php-ext-enable redis \
     && if [ "$WITH_AMQP" = "true" ]; then pecl install amqp && docker-php-ext-enable amqp; fi \
     && if [ "$WITH_SWOOLE" = "true" ]; then pecl install swoole && docker-php-ext-enable swoole; fi \
+    && if [ "$WITH_UV" = "true" ]; then pecl install uv && docker-php-ext-enable uv; fi \
     && pecl clear-cache \
     && rm -rf /tmp/pear /tmp/pecl-build \
     && apk del .build-deps \
@@ -69,6 +73,7 @@ RUN set -eux; \
     && if [ "$WITH_LDAP" = "true" ]; then apk del .ldap-build; fi \
     && if [ "$WITH_AMQP" = "true" ]; then apk del .amqp-build; fi \
     && if [ "$WITH_SWOOLE" = "true" ]; then apk del .swoole-build; fi \
+    && if [ "$WITH_UV" = "true" ]; then apk del .uv-build; fi \
     && rm -rf /var/cache/apk/* \
     && find /usr/local/lib/php -name "*.a" -delete \
     && find /usr/local/lib/php -name "*.la" -delete \

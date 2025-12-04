@@ -1,7 +1,8 @@
 ---
 
 - greeting:
-    text_size: xl
+#     text_size: xl
+    text_size: 2x1
     text: Greeting Text
 # Homepage Widgets 配置 - 基于项目 .env 文件
 # 系统监控和搜索功能
@@ -15,6 +16,14 @@
     units: metric
     refresh: 3000
     diskUnits: bytes
+
+- resources:
+    label: Storage
+    disk: /
+
+- resources:
+    label: Network
+    network: true
 
 # 搜索功能
 - search:
@@ -31,6 +40,20 @@
       dateStyle: long
       hourCycle: h24
     locale: zh-CN
+
+# - stocks:
+#     provider: finnhub
+#     color: true # optional, defaults to true
+#     cache: 1 # optional, default caches results for 1 minute
+#     watchlist:
+#       - NVDA
+#       - GME
+#       - AMC
+#       - AMD
+#       - TSM
+#       - MSFT
+#       - AAPL
+#       - BRK.A
 
 - openmeteo:
     label: Dongguan # optional

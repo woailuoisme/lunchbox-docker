@@ -35,4 +35,4 @@ RUN chmod +x /usr/local/bin/startup.sh
 CMD ["/usr/local/bin/startup.sh"]
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD ps aux | grep -q "[s]upervisord" || exit 1
+    CMD pgrep -f "php.*artisan.*reverb:start" > /dev/null || exit 1

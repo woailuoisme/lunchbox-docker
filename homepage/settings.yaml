@@ -71,3 +71,5 @@ layout:
 
 # 如果通过反向代理访问，设置基础 URL
 # base: https://your-domain.com/homepage
+providers:
+  finnhub: d4o4291r01qtrbsin540d4o4291r01qtrbsin54g
