@@ -878,28 +878,12 @@ services:
       - backend
       - frontend
 
-#  # 备份服务（按需运行）
-#  backup:
-#    image: alpine
-#    volumes:
-#      - postgres_data:/volume
-#      - ./backup:/backup
-#    command: tar -czf /backup/postgres_backup_$$(date +%Y%m%d).tar.gz -C /volume .
-#
-#  # 还原服务（按需运行）
-#  restore:
-#    image: alpine
-#    volumes:
-#      - postgres_data:/volume
-#      - ./backup:/backup
-#    command: tar -xzf /backup/<backup_file>.tar.gz -C /volume
-
 #secrets:
 #  users:
 #    file: users.yml
 volumes:
   app_code:
-    name: app_code_volume
+    name: app_code
     driver: local
     driver_opts:
       # 必须指定 type: bind 绑定挂载
