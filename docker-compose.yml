@@ -50,8 +50,6 @@ services:
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
       - CADDY_ADMIN=0.0.0.0:2019
-      - CROWDSEC_BOUNCER_API_URL=http://crowdsec:8080 # 内网访问 CrowdSec
-      - CROWDSEC_BOUNCER_API_KEY="" # 留空，启动后自动注册密钥
     ports:
       - "80:80"
       - "443:443"
@@ -62,7 +60,7 @@ services:
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}caddy:/etc/caddy
-      - ${DATA_PATH}:/data
+      - ${DATA_PATH}caddy:/data
     restart: always
     depends_on:
       authelia:
@@ -75,32 +73,29 @@ services:
       - frontend
       - backend
 
-  #  crowdsec:
-  #    image: crowdsecurity/crowdsec:latest
-  #    container_name: crowdsec
-  #    restart: always
-  #    environment:
-  #      TZ: Asia/Shanghai
-  #      DOCKER_HOST: tcp://docker-proxy:2375
-  #      GID: "${GID-1000}"
-  ##      DOCKER_HOST: tcp://docker-proxy:2375
-  #      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia # Caddy 专用检测规则
-  #    volumes:
-  #      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
-  #      - ${CONFIG_PATH}crowdsec/acquis.d:/etc/crowdsec/acquis.d
-  #      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
-  #      - ${CONFIG_PATH}/acquis.d:/etc/crowdsec/acquis.d
-  ##      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
-  #      - ${CONFIG_PATH}crowdsec/acquis.yml:/etc/crowdsec/acquis.yaml
-  ##      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
-  #    ports:
-  #      - "8680:8080"
-  #      - "6660:6060"
-  #    healthcheck:
-  #      test: ["CMD", "cscli", "version"]
-  #    networks:
-  #      - backend
-  #      - frontend
+  crowdsec:
+    image: crowdsecurity/crowdsec:latest
+    container_name: crowdsec
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      DOCKER_HOST: tcp://docker-proxy:2375
+      GID: "${GID-1000}"
+      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia
+    volumes:
+      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
+      - ${CONFIG_PATH}crowdsec:/etc/crowdsec
+#      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+#      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+#      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
+    ports:
+      - "8680:8080"
+      - "6660:6060"
+    healthcheck:
+      test: ["CMD", "cscli", "version"]
+    networks:
+      - backend
+      - frontend
 
   #  dnsmasq:
   #    container_name: dnsmasq
@@ -598,7 +593,9 @@ services:
     ports:
       - "8180:8080"
     environment:
+      - TZ=Asia/Shanghai
       - DOZZLE_THEME=dark
+      - DOZZLE_TIME_FORMAT="2006-01-02 15:04:05"
     healthcheck:
       test: ["CMD", "/dozzle", "healthcheck"]
       interval: 3s

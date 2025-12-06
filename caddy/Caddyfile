@@ -1,17 +1,17 @@
 {
 	import snippets/global-log.conf
+	import snippets/layer4.conf
 }
 
 import sites/*
 import templates/*
 #import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
-import fpm-app-auth fpm.{$SITE_ADDRESS} /var/www/lunchbox
+import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
 #import proxy-app octane.{$SITE_ADDRESS}  php-franken:8001
-import proxy-octane-app-auth octane.{$SITE_ADDRESS} php-franken:8001
+import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-franken:8001
 
 #import proxy-app auth.{$SITE_ADDRESS} authelia:9091
 import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
-
 import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000
 import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
@@ -23,13 +23,3 @@ import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
-
-## TCP代理配置 - Redis
-#:46379 {
-#    reverse_proxy redis:6379
-#}
-#
-## TCP代理配置 - PostgreSQL
-#:45432 {
-#    reverse_proxy postgres:5432
-#}

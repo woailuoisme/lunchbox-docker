@@ -9,6 +9,7 @@ RUN xcaddy build \
     --with github.com/mholt/caddy-l4 \
     --with github.com/caddy-dns/cloudflare \
     --with github.com/caddy-dns/alidns \
+    --with github.com/caddyserver/ipfilter \
     --with github.com/caddyserver/replace-response
 
 # 阶段 2: 最终运行镜像

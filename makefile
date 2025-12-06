@@ -264,7 +264,8 @@ check-caddy: ## Check Caddy service
 	@echo "🔍 Checking Caddy service..."
 	@docker compose ${DC_RUN_ARGS} exec caddy caddy validate --config /etc/caddy/Caddyfile
 
-trust-caddy-cert: ## Trust Caddy root certificate on macOS
+#https://caddyserver.com/docs/running#docker-compose
+trust-caddy-cert: ## Trust Caddy root certificate on macOS https://caddyserver.com/docs/running#docker-compose
 	@echo "🔐 Installing Caddy root certificate to macOS system keychain..."
 	@docker compose ${DC_RUN_ARGS} cp \
 		caddy:/data/caddy/pki/authorities/local/root.crt \
