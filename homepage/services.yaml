@@ -95,14 +95,14 @@
 
     - PHP-FPM:
         icon: php
-        href: https://fpm.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        href: https://rest.{{HOMEPAGE_VAR_SITE_ADDRESS}}
         description: PHP FastCGI
         server: my-docker
         container: php-fpm
 
     - PHP-FRANKEN:
         icon: php
-        href: https://octane.{{HOMEPAGE_VAR_SITE_ADDRESS}}
+        href: https://dev.{{HOMEPAGE_VAR_SITE_ADDRESS}}
         description: PHP octane franken
         server: my-docker
         container: php-franken
