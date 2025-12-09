@@ -73,29 +73,29 @@ services:
       - frontend
       - backend
 
-  crowdsec:
-    image: crowdsecurity/crowdsec:latest
-    container_name: crowdsec
-    restart: always
-    environment:
-      TZ: Asia/Shanghai
-      DOCKER_HOST: tcp://docker-proxy:2375
-      GID: "${GID-1000}"
-      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia
-    volumes:
-      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
-      - ${CONFIG_PATH}crowdsec:/etc/crowdsec
-#      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
-#      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
-#      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
-    ports:
-      - "8680:8080"
-      - "6660:6060"
-    healthcheck:
-      test: ["CMD", "cscli", "version"]
-    networks:
-      - backend
-      - frontend
+#  crowdsec:
+#    image: crowdsecurity/crowdsec:latest
+#    container_name: crowdsec
+#    restart: always
+#    environment:
+#      TZ: Asia/Shanghai
+#      DOCKER_HOST: tcp://docker-proxy:2375
+#      GID: "${GID-1000}"
+#      COLLECTIONS: crowdsecurity/caddy crowdsecurity/http-cve LePresidente/authelia
+#    volumes:
+#      - ${DATA_PATH}crowdsec:/var/lib/crowdsec/data/
+#      - ${CONFIG_PATH}crowdsec:/etc/crowdsec
+##      - ${CONFIG_PATH}crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml
+##      - ./crowdsec/acquis.yaml:/etc/crowdsec/acquis.yaml:ro
+##      - ./caddy/logs:/var/log/caddy/  # 共享 Caddy 日志供检测
+#    ports:
+#      - "8680:8080"
+#      - "6660:6060"
+#    healthcheck:
+#      test: ["CMD", "cscli", "version"]
+#    networks:
+#      - backend
+#      - frontend
 
   #  dnsmasq:
   #    container_name: dnsmasq
@@ -407,6 +407,27 @@ services:
     networks:
       - backend
       - frontend
+
+  postgres18:
+    build:
+      context: ./postgres-18
+      args:
+        - POSTGRES_VERSION=18.1-alpine3.23
+    container_name: postgres18
+    restart: always
+    volumes:
+      - ${DATA_PATH}postgres-18:/var/lib/postgresql/data
+      - ${CONFIG_PATH}postgres-18/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+    ports:
+      - "25432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    networks:
+      - backend
+      - frontend
+
 
   #  postgis:
   #    image: postgis/postgis:17-3.5-alpine # 推荐指定具体版本（PostgreSQL 17 + PostGIS 3.5）
