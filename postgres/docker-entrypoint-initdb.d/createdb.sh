@@ -22,26 +22,42 @@
 #	GRANT ALL PRIVILEGES ON DATABASE docker TO docker;
 #EOSQL
 
-# 创建 lunchbox 数据库
+# 创建 lunchbox 数据库并启用 PostGIS 扩展
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE DATABASE lunchbox;
-    GRANT ALL PRIVILEGES ON DATABASE lunchbox TO "$POSTGRES_USER";
+    GRANT ALL PRIVILEGES ON DATABASE lunchbox TO $POSTGRES_USER;
 EOSQL
 
-# 创建 shop 数据库
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "lunchbox" <<-EOSQL
+    CREATE EXTENSION IF NOT EXISTS vector;
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS postgis_topology;
+    CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;
+    CREATE EXTENSION IF NOT EXISTS postgis_raster;
+EOSQL
+
+# 创建 shop 数据库并启用 PostGIS 扩展
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE DATABASE shop;
-    GRANT ALL PRIVILEGES ON DATABASE shop TO "$POSTGRES_USER";
+    GRANT ALL PRIVILEGES ON DATABASE shop TO $POSTGRES_USER;
 EOSQL
 
-# 创建 domost 数据库
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "shop" <<-EOSQL
+    CREATE EXTENSION IF NOT EXISTS vector;
+    CREATE EXTENSION IF NOT EXISTS postgis;
+    CREATE EXTENSION IF NOT EXISTS postgis_topology;
+    CREATE EXTENSION IF NOT EXISTS postgis_sfcgal;
+    CREATE EXTENSION IF NOT EXISTS postgis_raster;
+EOSQL
+
+# 创建 domost 数据库并启用 PostGIS 扩展
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE DATABASE domost;
-    GRANT ALL PRIVILEGES ON DATABASE domost TO "$POSTGRES_USER";
+    GRANT ALL PRIVILEGES ON DATABASE domost TO $POSTGRES_USER;
 EOSQL
 
-# 创建 authelia 数据库
+# 创建 authelia 数据库（不需要 PostGIS）
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE DATABASE authelia;
-    GRANT ALL PRIVILEGES ON DATABASE authelia TO "$POSTGRES_USER";
+    GRANT ALL PRIVILEGES ON DATABASE authelia TO $POSTGRES_USER;
 EOSQL
