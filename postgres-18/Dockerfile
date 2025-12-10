@@ -10,6 +10,7 @@ RUN if [ "$CHANGE_SOURCE" = "true" ]; then \
     fi
 
 RUN apk update && apk add --no-cache \
+    postgresql-pgvector \
     postgis \
     geos \
     proj \

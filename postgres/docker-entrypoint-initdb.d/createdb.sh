@@ -42,7 +42,13 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     GRANT ALL PRIVILEGES ON DATABASE shop TO $POSTGRES_USER;
 EOSQL
 
+# SELECT uuid_generate_v4(); -- 生成随机UUID
+
+#pg_trgm（官方内置）
+#核心用途：基于三元组（trigram）的模糊匹配，支持相似度计算、模糊查询、拼音 / 英文模糊搜索，比 LIKE % xxx% 效率高 10 倍以上。
+#使用场景：商品名称模糊搜索、用户昵称匹配、地址模糊查询。
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "shop" <<-EOSQL
+    CREATE EXTENSION IF NOT EXISTS uuid-ossp;
     CREATE EXTENSION IF NOT EXISTS vector;
     CREATE EXTENSION IF NOT EXISTS postgis;
     CREATE EXTENSION IF NOT EXISTS postgis_topology;
