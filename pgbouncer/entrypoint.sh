@@ -26,11 +26,11 @@ fi
 # 显示配置信息
 echo "配置文件: $PGBOUNCER_CONFIG"
 echo "认证文件: $PGBOUNCER_AUTH_FILE"
-echo "监听地址: $(grep listen_addr $PGBOUNCER_CONFIG | grep -v '^;' | cut -d'=' -f2 | xargs)"
-echo "监听端口: $(grep listen_port $PGBOUNCER_CONFIG | grep -v '^;' | cut -d'=' -f2 | xargs)"
-echo "连接池模式: $(grep pool_mode $PGBOUNCER_CONFIG | grep -v '^;' | cut -d'=' -f2 | xargs)"
-echo "最大客户端连接: $(grep max_client_conn $PGBOUNCER_CONFIG | grep -v '^;' | cut -d'=' -f2 | xargs)"
-echo "默认连接池大小: $(grep default_pool_size $PGBOUNCER_CONFIG | grep -v '^;' | cut -d'=' -f2 | xargs)"
+echo "监听地址: $(grep listen_addr "$PGBOUNCER_CONFIG" | grep -v '^;' | cut -d'=' -f2 | xargs)"
+echo "监听端口: $(grep listen_port "$PGBOUNCER_CONFIG" | grep -v '^;' | cut -d'=' -f2 | xargs)"
+echo "连接池模式: $(grep pool_mode "$PGBOUNCER_CONFIG" | grep -v '^;' | cut -d'=' -f2 | xargs)"
+echo "最大客户端连接: $(grep max_client_conn "$PGBOUNCER_CONFIG" | grep -v '^;' | cut -d'=' -f2 | xargs)"
+echo "默认连接池大小: $(grep default_pool_size "$PGBOUNCER_CONFIG" | grep -v '^;' | cut -d'=' -f2 | xargs)"
 
 # 信号处理函数
 shutdown() {
@@ -42,7 +42,7 @@ shutdown() {
     # 发送 SIGTERM 给 pgbouncer 进程
     if [ -f /var/run/pgbouncer/pgbouncer.pid ]; then
         PID=$(cat /var/run/pgbouncer/pgbouncer.pid)
-        if kill -0 $PID 2>/dev/null; then
+        if kill -0 "$PID" 2>/dev/null; then
             echo "正在关闭 PgBouncer (PID: $PID)..."
             kill -TERM $PID
             
