@@ -20,20 +20,6 @@ services:
       - DOMAIN=${SITE_ADDRESS}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RESEND_API_KEY=${RESEND_API_KEY}
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "wget",
-          "--no-verbose",
-          "--tries=1",
-          "--spider",
-          "http://localhost:9091/api/health",
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
     depends_on:
       - redis
     networks:
@@ -42,10 +28,6 @@ services:
   caddy:
     build:
       context: ./caddy
-      args:
-        - CADDY_VERSION=${CADDY_VERSION:-2.10.2-alpine}
-        - CHANGE_SOURCE=${CHANGE_SOURCE:-true}
-        - TIMEZONE=${TIMEZONE:-Asia/Shanghai}
     container_name: caddy
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
@@ -236,7 +218,6 @@ services:
   php-fpm:
     build:
       context: ./php-fpm
-      #      context: ./php-fpm-xdebug
       dockerfile: Dockerfile
       args:
         - CHANGE_SOURCE=${CHANGE_SOURCE}
@@ -244,7 +225,6 @@ services:
         - WWWGROUP=${WWWGROUP:-33}
     container_name: php-fpm
     restart: always
-    user: "${WWWUSER:-33}:${WWWGROUP:-33}" # 使用环境变量或默认值
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
@@ -517,7 +497,7 @@ services:
       - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
     volumes:
       - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
-      #      - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
+      # - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
       - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
     networks:
       - backend
@@ -721,17 +701,17 @@ services:
     networks:
       - backend
 
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    volumes:
-      - ${DATA_PATH}ollama:/root/.ollama
-    environment:
-      - OLLAMA_MODELS=""
-    ports:
-      - "11434:11434"
-    networks:
-      - backend
+#  ollama:
+#    image: ollama/ollama
+#    container_name: ollama
+#    volumes:
+#      - ${DATA_PATH}ollama:/root/.ollama
+#    environment:
+#      - OLLAMA_MODELS=""
+#    ports:
+#      - "11434:11434"
+#    networks:
+#      - backend
 
 #  docker-proxy:
 #    image: tecnativa/docker-socket-proxy:v0.4.1
@@ -771,28 +751,28 @@ services:
       - frontend
       - backend
 
-  mysql:
-    build:
-      context: ./mysql
-      args:
-        MYSQL_VERSION: ${MYSQL_VERSION:-8.4}
-        TIMEZONE: ${TIMEZONE:-Asia/Shanghai}
-    container_name: mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-}
-      MYSQL_USER: ${MYSQL_USER:-}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
-      TZ: ${TIMEZONE:-Asia/Shanghai}
-    ports:
-      - "33306:3306"
-    volumes:
-      - ${DATA_PATH}mysql:/var/lib/mysql
-      - ${LOG_PATH}mysql:/var/log/mysql
-      - ${CONFIG_PATH}mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
-    restart: always
-    networks:
-      - backend
+#  mysql:
+#    build:
+#      context: ./mysql
+#      args:
+#        MYSQL_VERSION: ${MYSQL_VERSION:-8.4}
+#        TIMEZONE: ${TIMEZONE:-Asia/Shanghai}
+#    container_name: mysql
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: ${MYSQL_DATABASE:-}
+#      MYSQL_USER: ${MYSQL_USER:-}
+#      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+#      TZ: ${TIMEZONE:-Asia/Shanghai}
+#    ports:
+#      - "33306:3306"
+#    volumes:
+#      - ${DATA_PATH}mysql:/var/lib/mysql
+#      - ${LOG_PATH}mysql:/var/log/mysql
+#      - ${CONFIG_PATH}mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+#    restart: always
+#    networks:
+#      - backend
 
   watchtower:
     container_name: watchtower

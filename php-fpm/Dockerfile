@@ -71,4 +71,5 @@ HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
 WORKDIR /var/www
 # php-fpm  laravel-reverb laravel-octande-frankenphp
 EXPOSE 9000 8080 8001
+USER www-data
 ENTRYPOINT ["/usr/local/bin/startup.sh"]
