@@ -40,10 +40,23 @@ RUN mkdir -p /usr/local/etc/supervisord.d
 # 复制 Supervisor 主配置文件
 COPY supervisord.conf /usr/local/etc/supervisord.conf
 
+# 创建 .ssh 目录并添加 GitHub、Gitee 主机指纹（用于挂载SSH密钥）
+RUN mkdir -p /home/www-data/.ssh \
+    && chown -R www-data:www-data /home/www-data/.ssh \
+    && chmod 700 /home/www-data/.ssh \
+    && ssh-keyscan github.com >> /home/www-data/.ssh/known_hosts \
+    && ssh-keyscan gitee.com >> /home/www-data/.ssh/known_hosts \
+    && chown www-data:www-data /home/www-data/.ssh/known_hosts \
+    && chmod 644 /home/www-data/.ssh/known_hosts
+
 # 健康检测配置
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
 
 EXPOSE ${APP_PORT} ${OCTANE_ADMIN_PORT} 9103 9201
+
 WORKDIR $APP_PATH
+
+USER www-data
+
 CMD ["/usr/local/bin/startup.sh"]

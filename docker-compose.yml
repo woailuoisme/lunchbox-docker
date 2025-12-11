@@ -65,8 +65,6 @@ services:
     depends_on:
       authelia:
         condition: service_healthy
-      error-pages:
-        condition: service_started
       dozzle:
         condition: service_healthy
     networks:
@@ -216,8 +214,6 @@ services:
       - "46379:46379" # Redis 代理
     depends_on:
       certbot:
-        condition: service_started
-      error-pages:
         condition: service_started
       php-fpm:
         condition: service_healthy
@@ -542,6 +538,17 @@ services:
     networks:
       - backend
 
+#  vaultwarden:
+#    image: vaultwarden/server:latest-alpine
+#    container_name: vaultwarden
+#    restart: unless-stopped
+#    volumes:
+#      - ${DATA_PATH}vw-data/:/data/
+#    ports:
+#      - "8300:80"
+#    networks:
+#      - backend
+
   #  portainer:
   #    container_name: portainer
   #    build:
@@ -714,22 +721,34 @@ services:
     networks:
       - backend
 
-  docker-proxy:
-    image: tecnativa/docker-socket-proxy:v0.4.1
-    container_name: docker-proxy
-    environment:
-      - CONTAINERS=1 # Allow access to viewing containers
-      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
-      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
-      - POST=0 # Disallow any POST operations (effectively read-only)
-    ports:
-      - "127.0.0.1:2375:2375"
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
+      - ${DATA_PATH}ollama:/root/.ollama
+    environment:
+      - OLLAMA_MODELS=""
+    ports:
+      - "11434:11434"
     networks:
       - backend
-      - frontend
+
+#  docker-proxy:
+#    image: tecnativa/docker-socket-proxy:v0.4.1
+#    container_name: docker-proxy
+#    environment:
+#      - CONTAINERS=1 # Allow access to viewing containers
+#      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
+#      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
+#      - POST=0 # Disallow any POST operations (effectively read-only)
+#    ports:
+#      - "127.0.0.1:2375:2375"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#    restart: unless-stopped
+#    networks:
+#      - backend
+#      - frontend
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
@@ -748,10 +767,31 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro # optional, for docker integrations
       - ${CONFIG_PATH}homepage:/app/config # Make sure your local config directory exists
     restart: always
-    depends_on:
-      - docker-proxy
     networks:
       - frontend
+      - backend
+
+  mysql:
+    build:
+      context: ./mysql
+      args:
+        MYSQL_VERSION: ${MYSQL_VERSION:-8.4}
+        TIMEZONE: ${TIMEZONE:-Asia/Shanghai}
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-}
+      MYSQL_USER: ${MYSQL_USER:-}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-}
+      TZ: ${TIMEZONE:-Asia/Shanghai}
+    ports:
+      - "33306:3306"
+    volumes:
+      - ${DATA_PATH}mysql:/var/lib/mysql
+      - ${LOG_PATH}mysql:/var/log/mysql
+      - ${CONFIG_PATH}mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d:ro
+    restart: always
+    networks:
       - backend
 
   watchtower:
@@ -826,29 +866,29 @@ services:
 #    networks:
 #      - frontend
 #      - backend
-  pgadmin:
-    image: dpage/pgadmin4:9
-    container_name: pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
-    volumes:
-      - ${DATA_PATH}pgadmin:/var/lib/pgadmin
-    networks:
-      - backend
+#  pgadmin:
+#    image: dpage/pgadmin4:9
+#    container_name: pgadmin4
+#    restart: always
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+#    ports:
+#      - "5050:80"
+#    volumes:
+#      - ${DATA_PATH}pgadmin:/var/lib/pgadmin
+#    networks:
+#      - backend
 
-  redis-insight:
-    container_name: redis-insight
-    image: redis/redisinsight:latest
-    restart: always
-    command: -v ${DATA_PATH}redisinsight:/data
-    ports:
-      - "5540:5540"
-    networks:
-      - backend
+#  redis-insight:
+#    container_name: redis-insight
+#    image: redis/redisinsight:latest
+#    restart: always
+#    command: -v ${DATA_PATH}redisinsight:/data
+#    ports:
+#      - "5540:5540"
+#    networks:
+#      - backend
 
 #  postgresus:
 #    container_name: postgresus
