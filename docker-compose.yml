@@ -29,7 +29,6 @@ services:
     container_name: caddy
     environment:
       - SITE_ADDRESS=${SITE_ADDRESS}
-      - CADDY_ADMIN=0.0.0.0:2019
     ports:
       - "80:80"
       - "443:443"
@@ -527,6 +526,19 @@ services:
     ports:
       - "${MINIO_PORT_UI}:9001"
       - "${MINIO_PORT}:9000"
+    networks:
+      - backend
+
+  filebrowser:
+    image: filebrowser/filebrowser:latest
+    container_name: filebrowser
+    restart: unless-stopped
+    ports:
+      - "8580:80"
+    volumes:
+      - ${APP_CODE_PATH}:/srv
+      - ${DATA_PATH}filebrowser:/database
+      - ${CONFIG_PATH}filebrowser:/config
     networks:
       - backend
 
