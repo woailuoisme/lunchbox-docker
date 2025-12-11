@@ -20,8 +20,6 @@ services:
       - DOMAIN=${SITE_ADDRESS}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - RESEND_API_KEY=${RESEND_API_KEY}
-    depends_on:
-      - redis
     networks:
       - frontend
       - backend
@@ -241,66 +239,21 @@ services:
       - backend
       - frontend
     depends_on:
-      - redis
-      - postgres
-      - minio
-      - meilisearch
-      - rabbitmq
+      php-schedule:
+        condition: service_healthy
+      php-horizon:
+        condition: service_healthy
+      php-reverb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
-  php-worker:
-    build:
-      context: php-worker
-    container_name: php-worker
-    restart: always
-    environment:
-      - APP_PATH=${APP_PATH}
-      - APP_ENV=${APP_ENV}
-    volumes:
-      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    networks:
-      - backend
-
-  php-schedule:
-    build:
-      context: php-schedule
-    container_name: php-schedule
-    restart: always
-    environment:
-      - APP_PATH=${APP_PATH}
-      - APP_ENV=${APP_ENV}
-      - ENABLE_SUPERVISOR=false
-    volumes:
-      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    networks:
-      - backend
-
-  php-reverb:
-    build:
-      context: php-reverb
-    container_name: php-reverb
-    restart: always
-    environment:
-      - APP_PATH=${APP_PATH}
-      - APP_ENV=${APP_ENV}
-      - ENABLE_SUPERVISOR=false
-    volumes:
-      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    networks:
-      - backend
-
-  php-horizon:
-    build:
-      context: php-horizon
-    container_name: php-horizon
-    restart: always
-    environment:
-      - APP_PATH=${APP_PATH}
-      - APP_ENV=${APP_ENV}
-      - ENABLE_SUPERVISOR=false
-    volumes:
-      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-    networks:
-      - backend
 
   php-franken:
     build:
@@ -309,7 +262,7 @@ services:
     restart: always
     ports:
       - "8801:8001"
-      - "2019:2019"
+      - "12019:2019"
     volumes:
       - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
       - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
@@ -337,32 +290,92 @@ services:
         condition: service_healthy
       php-reverb:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
-  #  php-octane:
+  php-roadrunner:
+    build:
+      context: php-roadrunner
+    container_name: php-roadrunner
+    restart: always
+    ports:
+      - "8201:8001"
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
+    networks:
+      - backend
+      - frontend
+
+  php-horizon:
+    build:
+      context: php-horizon
+    container_name: php-horizon
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  php-schedule:
+    build:
+      context: php-schedule
+    container_name: php-schedule
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+    depends_on:
+      php-horizon:
+        condition: service_healthy
+
+  php-reverb:
+    build:
+      context: php-reverb
+    container_name: php-reverb
+    restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=${APP_ENV}
+      - ENABLE_SUPERVISOR=false
+    volumes:
+      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
+    networks:
+      - backend
+    depends_on:
+      php-horizon:
+        condition: service_healthy
+
+  #  php-worker:
   #    build:
-  #      context: php-octane
-  #    container_name: php-octane
+  #      context: php-worker
+  #    container_name: php-worker
   #    restart: always
-  #    ports:
-  #      - "8701:8001"
-  #      - "2719:2019"
-  #    volumes:
-  #      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
-  #      - ${CONFIG_PATH}ssh:/home/www-data/.ssh:ro
   #    environment:
   #      - APP_PATH=${APP_PATH}
-  #      - APP_ENV=octane
-  #      - APP_DEBUG=true
-  #      - ENABLE_SUPERVISOR=false
-  #      - WATCH=true
-  #      - OCTANE_WORKERS=4
-  #      - OCTANE_MAX_REQUESTS=300
-  #      - PYTHONWARNINGS=ignore:pkg_resources is deprecated
-  #    extra_hosts:
-  #      - "host.docker.internal:host-gateway"
+  #      - APP_ENV=${APP_ENV}
+  #    volumes:
+  #      - ${APP_CODE_PATH}:${APP_CODE_PATH_CONTAINER}${APP_CODE_CONTAINER_FLAG}
   #    networks:
   #      - backend
-  #      - frontend
 
   postgres:
     build:
@@ -454,10 +467,9 @@ services:
   #    networks:
   #      - backend
   #      - frontend
-
   meilisearch:
     container_name: meilisearch
-    image: "getmeili/meilisearch:v1.18.0"
+    image: getmeili/meilisearch:v1.29
     restart: always
     environment:
       - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
@@ -713,22 +725,22 @@ services:
 #    networks:
 #      - backend
 
-#  docker-proxy:
-#    image: tecnativa/docker-socket-proxy:v0.4.1
-#    container_name: docker-proxy
-#    environment:
-#      - CONTAINERS=1 # Allow access to viewing containers
-#      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
-#      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
-#      - POST=0 # Disallow any POST operations (effectively read-only)
-#    ports:
-#      - "127.0.0.1:2375:2375"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock:ro
-#    restart: unless-stopped
-#    networks:
-#      - backend
-#      - frontend
+  docker-proxy:
+    image: tecnativa/docker-socket-proxy:v0.4.1
+    container_name: docker-proxy
+    environment:
+      - CONTAINERS=1 # Allow access to viewing containers
+      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
+      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
+      - POST=0 # Disallow any POST operations (effectively read-only)
+    ports:
+      - "127.0.0.1:2375:2375"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    networks:
+      - backend
+      - frontend
 
   homepage:
     image: ghcr.io/gethomepage/homepage:latest

@@ -1,5 +1,4 @@
 ARG AUTHELA_VERSION=4.39
-# ARG AUTHELA_VERSION=latest
 FROM authelia/authelia:${AUTHELA_VERSION}
 
 LABEL maintainer="seaside <531773730@qq.com>"

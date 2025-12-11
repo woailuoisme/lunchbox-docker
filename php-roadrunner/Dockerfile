@@ -1,24 +1,24 @@
-#FROM ccr.ccs.tencentyun.com/jiaoio/php-base-franken
-#FROM jiaoio/php-base-franken-xdebug
-FROM ghcr.io/roadrunner-server/roadrunner:2025.X.X AS roadrunner
-FROM jiaoio/php-base-simple-cli
-
-COPY --from=roadrunner /usr/bin/rr /usr/local/bin/rr
+FROM jiaoio/php-base-cli
+# 安装 glibc 兼容层（RoadRunner 需要 glibc）
+RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community gcompat
+ARG ROADRUNNER_VERSION=2025.1.5
+ARG TARGETARCH=arm64
+COPY install-roadrunner.sh /tmp/install-roadrunner.sh
+RUN chmod +x /tmp/install-roadrunner.sh && \
+    ROADRUNNER_VERSION=${ROADRUNNER_VERSION} FORCE_ARCH=${TARGETARCH} /tmp/install-roadrunner.sh && \
+    rm /tmp/install-roadrunner.sh
 
 ENV APP_PATH=/var/www/lunchbox \
     APP_PORT=8001 \
     APP_ENV=docker \
     APP_DEBUG=true \
-    OCTANE_SERVER=frankenphp \
+    ENABLE_SUPERVISOR=false \
+    OCTANE_RR_BINARY=/usr/local/bin/rr \
+    OCTANE_SERVER=roadrunner \
     OCTANE_HOST=0.0.0.0 \
+    OCTANE_WORKERS=4 \
+    OCTANE_MAX_REQUESTS=300 \
     WATCH=false \
-    OCTANE_WORKERS=2 \
-    OCTANE_ADMIN_PORT=2019 \
-    OCTANE_MAX_REQUESTS=500 \
-    OCTANE_POLL=false \
-    OCTANE_HTTPS=false \
-    OCTANE_HTTP_REDIRECT=false \
-    OCTANE_LOG_LEVEL=info \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 # 复制PHP配置
@@ -43,6 +43,6 @@ COPY supervisord.conf /usr/local/etc/supervisord.conf
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
 
-EXPOSE ${APP_PORT} ${OCTANE_ADMIN_PORT} 9103 9201
+EXPOSE ${APP_PORT} 9103
 WORKDIR $APP_PATH
 CMD ["/usr/local/bin/startup.sh"]
