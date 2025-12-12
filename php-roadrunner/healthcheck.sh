@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Laravel Octane with FrankenPHP 健康检查脚本
+# Laravel Octane with RoadRunner 健康检查脚本
 # 用于 Docker 健康检测
 
 set -e
@@ -21,14 +21,26 @@ log_error() {
     echo -e "${RED}[${timestamp}] [HEALTH_ERROR]${NC} $1" >&2
 }
 
-# 检查 Supervisor 进程
-check_supervisor_process() {
-    if pgrep -f "supervisord" > /dev/null; then
-        log_info "Supervisor 进程运行正常"
-        return 0
+# 检查 RoadRunner 进程
+check_roadrunner_process() {
+    # 检查是否启用了 supervisor
+    if [ "${ENABLE_SUPERVISOR}" = "true" ]; then
+        if pgrep -f "supervisord" > /dev/null; then
+            log_info "Supervisor 进程运行正常"
+            return 0
+        else
+            log_error "Supervisor 进程未运行"
+            return 1
+        fi
     else
-        log_error "Supervisor 进程未运行"
-        return 1
+        # 直接检查 RoadRunner 或 PHP Artisan 进程
+        if pgrep -f "octane:start" > /dev/null || pgrep -f "rr serve" > /dev/null; then
+            log_info "RoadRunner 进程运行正常"
+            return 0
+        else
+            log_error "RoadRunner 进程未运行"
+            return 1
+        fi
     fi
 }
 
@@ -81,7 +93,7 @@ main_health_check() {
     fi
 
     # 检查进程
-    if ! check_supervisor_process; then
+    if ! check_roadrunner_process; then
         exit_code=1
     fi
 

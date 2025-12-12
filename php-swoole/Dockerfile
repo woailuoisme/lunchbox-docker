@@ -1,7 +1,7 @@
 FROM jiaoio/php-base-cli
 # 安装 glibc 兼容层（RoadRunner 需要 glibc）
 RUN apk add --no-cache --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community gcompat
-ARG ROADRUNNER_VERSION=2025.1.6
+ARG ROADRUNNER_VERSION=2025.1.5
 ARG TARGETARCH=arm64
 COPY install-roadrunner.sh /tmp/install-roadrunner.sh
 RUN chmod +x /tmp/install-roadrunner.sh && \
@@ -18,7 +18,6 @@ ENV APP_PATH=/var/www/lunchbox \
     OCTANE_HOST=0.0.0.0 \
     OCTANE_WORKERS=4 \
     OCTANE_MAX_REQUESTS=300 \
-    OCTANE_LOG_LEVEL=info \
     WATCH=false \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 

@@ -277,6 +277,7 @@ services:
       - OCTANE_POLL=true
       - OCTANE_WORKERS=4
       - OCTANE_MAX_REQUESTS=300
+      - CADDY_GLOBAL_OPTIONS={"log":{"format":"console"}}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:

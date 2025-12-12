@@ -206,7 +206,11 @@ show_config() {
     log_info "网络轮询: ${OCTANE_POLL}"
     log_info "HTTPS: ${OCTANE_HTTPS}"
     log_info "HTTP重定向: ${OCTANE_HTTP_REDIRECT}"
-    log_info "日志级别: ${OCTANE_LOG_LEVEL}"
+    if [ "${ENABLE_OCTANE_LOG_LEVEL}" != "false" ]; then
+        log_info "日志级别: ${OCTANE_LOG_LEVEL}"
+    else
+        log_info "日志级别: 已禁用"
+    fi
     log_info "================================="
 }
 
@@ -295,7 +299,7 @@ start_frankenphp_foreground() {
         --admin-port="${OCTANE_ADMIN_PORT}" \
         --max-requests="${OCTANE_MAX_REQUESTS}" \
         --env="${APP_ENV}" \
-        --log-level="${OCTANE_LOG_LEVEL}" \
+        $([ "${ENABLE_OCTANE_LOG_LEVEL}" != "false" ] && echo "--log-level=${OCTANE_LOG_LEVEL}") \
         $([ "${WATCH}" = "true" ] && echo "--watch") \
         $([ "${OCTANE_POLL}" = "true" ] && echo "--poll") \
         $([ "${OCTANE_HTTPS}" = "true" ] && echo "--https") \
@@ -313,7 +317,14 @@ build_start_command_display() {
     command="${command} --admin-port=${OCTANE_ADMIN_PORT}"
     command="${command} --max-requests=${OCTANE_MAX_REQUESTS}"
     command="${command} --env=${APP_ENV}"
-    command="${command} --log-level=${OCTANE_LOG_LEVEL}"
+    
+    # 条件参数：日志级别
+    if [ "${ENABLE_OCTANE_LOG_LEVEL}" != "false" ]; then
+        command="${command} --log-level=${OCTANE_LOG_LEVEL}"
+        log_info "日志级别: ${OCTANE_LOG_LEVEL}"
+    else
+        log_info "日志级别参数已禁用"
+    fi
 
     # 条件参数
     if [ "${WATCH}" = "true" ]; then

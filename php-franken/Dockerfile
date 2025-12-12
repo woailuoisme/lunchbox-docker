@@ -15,11 +15,13 @@ ENV APP_PATH=/var/www/lunchbox \
     OCTANE_HTTPS=false \
     OCTANE_HTTP_REDIRECT=false \
     OCTANE_LOG_LEVEL=info \
+    ENABLE_OCTANE_LOG_LEVEL=false \
     ENABLE_SUPERVISOR=false \
     ENABLE_HORIZON=true \
     ENABLE_SCHEDULE=true \
     ENABLE_REVERB=false \
     ENABLE_PULSE=false \
+    CADDY_GLOBAL_OPTIONS={"log":{"format":"console"}} \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 # 复制PHP配置
@@ -57,6 +59,6 @@ EXPOSE ${APP_PORT} ${OCTANE_ADMIN_PORT} 9103 9201
 
 WORKDIR $APP_PATH
 
-USER www-data
+#USER www-data
 
 CMD ["/usr/local/bin/startup.sh"]

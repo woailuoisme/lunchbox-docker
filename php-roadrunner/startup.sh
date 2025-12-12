@@ -36,6 +36,7 @@ log_error() {
 # 全局变量
 readonly APP_PATH=${APP_PATH:-/var/www/lunchbox}
 readonly APP_ENV=${APP_ENV:-docker}
+OCTANE_LOG_LEVEL=${OCTANE_LOG_LEVEL:-${LOG_LEVEL:-info}}
 
 # ENABLE_SUPERVISOR 支持多种格式: true/false, 1/0, yes/no
 normalize_bool() {
@@ -67,7 +68,7 @@ generate_supervisor_config() {
 [program:roadrunner]
 environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}",OCTANE_RR_BINARY="/usr/local/bin/rr"
 process_name = %(program_name)s_%(process_num)s
-command = php ${APP_PATH}/artisan octane:start --server=roadrunner --env=${APP_ENV} --port=${APP_PORT} --host=${OCTANE_HOST} --workers=${OCTANE_WORKERS} --max-requests=${OCTANE_MAX_REQUESTS} $([ "${WATCH}" = "true" ] && echo "--watch")
+command = php ${APP_PATH}/artisan octane:start --server=roadrunner --env=${APP_ENV} --port=${APP_PORT} --host=${OCTANE_HOST} --workers=${OCTANE_WORKERS} --max-requests=${OCTANE_MAX_REQUESTS} --log-level=${OCTANE_LOG_LEVEL} $([ "${WATCH}" = "true" ] && echo "--watch")
 autostart = true
 autorestart = true
 stdout_logfile = /dev/stdout
@@ -114,6 +115,7 @@ show_config() {
     log_info "工作进程数: ${OCTANE_WORKERS}"
     log_info "最大请求数: ${OCTANE_MAX_REQUESTS}"
     log_info "文件监听: ${WATCH}"
+    log_info "日志级别: ${OCTANE_LOG_LEVEL}"
     log_info "================================="
 }
 
@@ -181,6 +183,7 @@ start_direct() {
     cmd="${cmd} --host=${OCTANE_HOST}"
     cmd="${cmd} --workers=${OCTANE_WORKERS}"
     cmd="${cmd} --max-requests=${OCTANE_MAX_REQUESTS}"
+    cmd="${cmd} --log-level=${OCTANE_LOG_LEVEL}"
     
     if [ "${WATCH}" = "true" ]; then
         cmd="${cmd} --watch"
@@ -194,6 +197,7 @@ start_direct() {
     export OCTANE_RR_BINARY="${OCTANE_RR_BINARY}"
     export OCTANE_WORKERS="${OCTANE_WORKERS}"
     export OCTANE_MAX_REQUESTS="${OCTANE_MAX_REQUESTS}"
+    export OCTANE_LOG_LEVEL="${OCTANE_LOG_LEVEL}"
     
     exec ${cmd}
 }
@@ -208,6 +212,7 @@ build_start_command_display() {
     command="${command} --host=${OCTANE_HOST}"
     command="${command} --workers=${OCTANE_WORKERS}"
     command="${command} --max-requests=${OCTANE_MAX_REQUESTS}"
+    command="${command} --log-level=${OCTANE_LOG_LEVEL}"
 
     # 条件参数
     if [ "${WATCH}" = "true" ]; then
