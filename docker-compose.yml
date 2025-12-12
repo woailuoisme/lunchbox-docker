@@ -303,6 +303,15 @@ services:
       context: php-roadrunner
     container_name: php-roadrunner
     restart: always
+    environment:
+      - APP_PATH=${APP_PATH}
+      - APP_ENV=octane
+      - APP_DEBUG=true
+      - ENABLE_SUPERVISOR=false
+      - ENABLE_SCHEDULE=true
+      - ENABLE_HORIZON=true
+      - ENABLE_REVERB=false
+      - WATCH=true
     ports:
       - "8201:8001"
     volumes:
@@ -529,18 +538,18 @@ services:
     networks:
       - backend
 
-  filebrowser:
-    image: filebrowser/filebrowser:latest
-    container_name: filebrowser
-    restart: unless-stopped
-    ports:
-      - "8580:80"
-    volumes:
-      - ${APP_CODE_PATH}:/srv
-      - ${DATA_PATH}filebrowser:/database
-      - ${CONFIG_PATH}filebrowser:/config
-    networks:
-      - backend
+#  filebrowser:
+#    image: filebrowser/filebrowser:latest
+#    container_name: filebrowser
+#    restart: unless-stopped
+#    ports:
+#      - "8780:80"
+#    volumes:
+#      - ${APP_CODE_PATH}:/srv
+#      - ${DATA_PATH}filebrowser:/database
+#      - ${CONFIG_PATH}filebrowser:/config
+#    networks:
+#      - backend
 
 #  vaultwarden:
 #    image: vaultwarden/server:latest-alpine

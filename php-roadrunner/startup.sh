@@ -67,7 +67,7 @@ generate_supervisor_config() {
 [program:roadrunner]
 environment=APP_ENV="${APP_ENV}",APP_DEBUG="false",APP_PATH="${APP_PATH}",OCTANE_RR_BINARY="/usr/local/bin/rr"
 process_name = %(program_name)s_%(process_num)s
-command = php ${APP_PATH}/artisan octane:start --server=roadrunner --port=${APP_PORT} --host=${OCTANE_HOST} --workers=${OCTANE_WORKERS} --max-requests=${OCTANE_MAX_REQUESTS} $([ "${WATCH}" = "true" ] && echo "--watch")
+command = php ${APP_PATH}/artisan octane:start --server=roadrunner --env=${APP_ENV} --port=${APP_PORT} --host=${OCTANE_HOST} --workers=${OCTANE_WORKERS} --max-requests=${OCTANE_MAX_REQUESTS} $([ "${WATCH}" = "true" ] && echo "--watch")
 autostart = true
 autorestart = true
 stdout_logfile = /dev/stdout
@@ -176,6 +176,7 @@ start_direct() {
     # 构建完整的启动命令
     local cmd="php artisan octane:start"
     cmd="${cmd} --server=${OCTANE_SERVER:-roadrunner}"
+    cmd="${cmd} --env=${APP_ENV}"
     cmd="${cmd} --port=${APP_PORT}"
     cmd="${cmd} --host=${OCTANE_HOST}"
     cmd="${cmd} --workers=${OCTANE_WORKERS}"
@@ -202,6 +203,7 @@ build_start_command_display() {
     local command="php artisan octane:start --server=roadrunner"
 
     # 基本参数
+    command="${command} --env=${APP_ENV}"
     command="${command} --port=${APP_PORT}"
     command="${command} --host=${OCTANE_HOST}"
     command="${command} --workers=${OCTANE_WORKERS}"
