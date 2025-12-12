@@ -309,9 +309,6 @@ services:
       - APP_ENV=octane
       - APP_DEBUG=true
       - ENABLE_SUPERVISOR=false
-      - ENABLE_SCHEDULE=true
-      - ENABLE_HORIZON=true
-      - ENABLE_REVERB=false
       - WATCH=true
     ports:
       - "8201:8001"
