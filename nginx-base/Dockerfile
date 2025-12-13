@@ -7,10 +7,10 @@ LABEL description="Official Nginx with HTTP/3 (QUIC) support via dynamic module"
 # 阶段1：下载 quiche 源码
 FROM alpine:3.23 AS quiche-builder
 
-ARG QUICHE_VERSION=0.24.5
+ARG QUICHE_VERSION=0.12.0
 
 RUN apk add --no-cache git \
-  && git clone --depth 1 --branch v${QUICHE_VERSION} https://github.com/cloudflare/quiche.git /quiche
+  && git clone --depth 1 --branch tokio-quiche-${QUICHE_VERSION} https://github.com/cloudflare/quiche.git /quiche
 
 # 阶段2：编译 HTTP/3 动态模块
 FROM nginx:1.29.4-alpine3.23 AS builder
