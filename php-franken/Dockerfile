@@ -21,6 +21,7 @@ ENV APP_PATH=/var/www/lunchbox \
     ENABLE_SCHEDULE=true \
     ENABLE_REVERB=false \
     ENABLE_PULSE=false \
+    COMPOSER_ALLOW_SUPERUSER=1 \
     CADDY_GLOBAL_OPTIONS={"log":{"format":"console"}} \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 

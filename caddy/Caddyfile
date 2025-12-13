@@ -23,3 +23,12 @@ import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
+
+:8888 {
+	respond /health 200 {
+		body "OK"
+	}
+	respond /ready 200 {
+		body "Ready"
+	}
+}

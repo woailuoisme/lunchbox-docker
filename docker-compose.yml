@@ -536,6 +536,14 @@ services:
     networks:
       - backend
 
+  centrifugo:
+    image: centrifugo/centrifugo:v6
+    container_name: centrifugo
+    command: centrifugo
+    ports:
+      - "8500:8000"
+    networks:
+      - backend
 #  filebrowser:
 #    image: filebrowser/filebrowser:latest
 #    container_name: filebrowser
@@ -764,14 +772,10 @@ services:
   homepage:
     image: ghcr.io/gethomepage/homepage:latest
     container_name: homepage
-    env_file:
-      - ./homepage/.env
     environment:
       HOMEPAGE_ALLOWED_HOSTS: home.${SITE_ADDRESS}
       HOMEPAGE_VAR_SITE_ADDRESS: ${SITE_ADDRESS}
       HOMEPAGE_VAR_DOMAIN: ${SITE_ADDRESS}
-      PUID: 1000 # optional, your user id
-      PGID: 1000
     ports:
       - "33000:3000"
     volumes:

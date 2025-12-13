@@ -23,6 +23,7 @@ ENV APP_ENABLE=true \
     ENABLE_WORKER=false \
     ENABLE_REVERB=false \
     ENABLE_PULSE=false \
+    COMPOSER_ALLOW_SUPERUSER=1 \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 #RUN pecl install xdebug-3.2.1 \

@@ -20,6 +20,7 @@ ENV APP_PATH=/var/www/lunchbox \
     OCTANE_MAX_REQUESTS=300 \
     OCTANE_LOG_LEVEL=info \
     WATCH=false \
+    COMPOSER_ALLOW_SUPERUSER=1 \
     PYTHONWARNINGS="ignore:pkg_resources is deprecated"
 
 # 复制PHP配置
