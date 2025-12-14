@@ -734,7 +734,7 @@ services:
     environment:
       - GOTIFY_DEFAULTUSER_NAME=${GOTIFY_DEFAULTUSER_NAME}
       - GOTIFY_DEFAULTUSER_PASS=${GOTIFY_DEFAULTUSER_PASS}
-      - TZ="Asia/Shanghai"
+      - TZ=Asia/Shanghai
     volumes:
       - "${DATA_PATH}gotify:/app/data"
     networks:
@@ -761,10 +761,10 @@ services:
       - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
       - POST=0 # Disallow any POST operations (effectively read-only)
     ports:
-      - "127.0.0.1:2375:2375"
+      - "62375:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-    restart: unless-stopped
+    restart: always
     networks:
       - backend
       - frontend
@@ -926,6 +926,17 @@ services:
     networks:
       - backend
       - frontend
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    restart: always
+    volumes:
+      - ${DATA_PATH}uptime-kuma:/app/data
+    ports:
+      - "33001:3001"
+    networks:
+      - backend
 
 #secrets:
 #  users:
