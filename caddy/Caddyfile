@@ -1,10 +1,10 @@
-{
+import sites/*
+import templates/* {
 	import snippets/global-log.conf
-	import snippets/layer4.conf
+	import proxy-layer4 45432 postgres:5432
+	import proxy-layer4 46379 redis:6379
 }
 
-import sites/*
-import templates/*
 #import fpm-app fpm.{$SITE_ADDRESS} /var/www/lunchbox
 import fpm-app-auth rest.{$SITE_ADDRESS} /var/www/lunchbox
 import proxy-octane-app-auth dev.{$SITE_ADDRESS} php-franken:8001
@@ -23,6 +23,7 @@ import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
+
 
 :8888 {
 	respond /health 200 {

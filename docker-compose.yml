@@ -938,6 +938,18 @@ services:
     networks:
       - backend
 
+  next-ai-draw-io:
+    image: ghcr.io/dayuanjiang/next-ai-draw-io:latest
+    container_name: draw-io
+    ports:
+      - "3500:3000"
+    environment:
+      - AI_PROVIDER=${AI_PROVIDER}
+      - AI_MODEL=${AI_MODEL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - backend
+
 #secrets:
 #  users:
 #    file: users.yml
