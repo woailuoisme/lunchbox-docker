@@ -1,6 +1,9 @@
+{
+	import snippets/global-log.conf
+}
+
 import sites/*
 import templates/* {
-	import snippets/global-log.conf
 	import proxy-layer4 45432 postgres:5432
 	import proxy-layer4 46379 redis:6379
 }

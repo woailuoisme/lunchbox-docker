@@ -5,31 +5,40 @@
 
 set -e
 
+# ANSI 颜色代码
+COLOR_RESET="\033[0m"
+COLOR_RED="\033[0;31m"
+COLOR_GREEN="\033[0;32m"
+COLOR_YELLOW="\033[0;33m"
+COLOR_BLUE="\033[0;34m"
+COLOR_CYAN="\033[0;36m"
+COLOR_BOLD="\033[1m"
+
 # 日志前缀定义
-INFO_PREFIX="[INFO]"
-SUCCESS_PREFIX="[SUCCESS]"
-WARNING_PREFIX="[WARNING]"
-ERROR_PREFIX="[ERROR]"
+INFO_PREFIX="${COLOR_BLUE}[INFO]${COLOR_RESET}"
+SUCCESS_PREFIX="${COLOR_GREEN}[SUCCESS]${COLOR_RESET}"
+WARNING_PREFIX="${COLOR_YELLOW}[WARNING]${COLOR_RESET}"
+ERROR_PREFIX="${COLOR_RED}[ERROR]${COLOR_RESET}"
 
 # 日志函数
 log_info() {
     timestamp=$(date '+%Y-%m-%d %H:%M:%S %z')
-    echo "[${timestamp}] ${INFO_PREFIX} $1"
+    echo -e "${COLOR_CYAN}[${timestamp}]${COLOR_RESET} ${INFO_PREFIX} $1"
 }
 
 log_success() {
     timestamp=$(date '+%Y-%m-%d %H:%M:%S %z')
-    echo "[${timestamp}] ${SUCCESS_PREFIX} $1"
+    echo -e "${COLOR_CYAN}[${timestamp}]${COLOR_RESET} ${SUCCESS_PREFIX} ${COLOR_GREEN}$1${COLOR_RESET}"
 }
 
 log_warning() {
     timestamp=$(date '+%Y-%m-%d %H:%M:%S %z')
-    echo "[${timestamp}] ${WARNING_PREFIX} $1"
+    echo -e "${COLOR_CYAN}[${timestamp}]${COLOR_RESET} ${WARNING_PREFIX} ${COLOR_YELLOW}$1${COLOR_RESET}"
 }
 
 log_error() {
     timestamp=$(date '+%Y-%m-%d %H:%M:%S %z')
-    echo "[${timestamp}] ${ERROR_PREFIX} $1"
+    echo -e "${COLOR_CYAN}[${timestamp}]${COLOR_RESET} ${ERROR_PREFIX} ${COLOR_RED}${COLOR_BOLD}$1${COLOR_RESET}"
 }
 
 # 格式化 Caddy 配置文件
@@ -78,18 +87,19 @@ validate_caddy_config() {
 
 # 显示 Caddy 模块信息
 show_caddy_modules() {
-    log_info "已安装的 Caddy 模块:"
+    echo -e "${COLOR_BOLD}${COLOR_CYAN}=== 已安装的 Caddy 模块 ===${COLOR_RESET}"
     caddy list-modules | grep -E "(Standard modules|Non-standard modules|Unknown modules)" || true
+    echo -e "${COLOR_BOLD}${COLOR_CYAN}================================${COLOR_RESET}"
 }
 
 # 显示启动配置
 show_startup_config() {
-    log_info "=== Caddy 启动配置 ==="
-    log_info "配置文件: /etc/caddy/Caddyfile"
-    log_info "适配器: caddyfile"
-    log_info "工作目录: $(pwd)"
-    log_info "用户: $(whoami)"
-    log_info "=================================="
+    echo -e "${COLOR_BOLD}${COLOR_CYAN}=== Caddy 启动配置 ===${COLOR_RESET}"
+    log_info "配置文件: ${COLOR_BOLD}/etc/caddy/Caddyfile${COLOR_RESET}"
+    log_info "适配器: ${COLOR_BOLD}caddyfile${COLOR_RESET}"
+    log_info "工作目录: ${COLOR_BOLD}$(pwd)${COLOR_RESET}"
+    log_info "用户: ${COLOR_BOLD}$(whoami)${COLOR_RESET}"
+    echo -e "${COLOR_BOLD}${COLOR_CYAN}================================${COLOR_RESET}"
 }
 
 # 主函数
@@ -112,7 +122,8 @@ main() {
     show_caddy_modules
 
     log_success "Caddy 服务启动准备完成"
-    log_info "启动命令: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile"
+    echo -e "${COLOR_BOLD}${COLOR_GREEN}启动命令: caddy run --config /etc/caddy/Caddyfile --adapter caddyfile${COLOR_RESET}"
+    echo ""
 
     # 启动 Caddy
     exec caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
