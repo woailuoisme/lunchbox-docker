@@ -26,6 +26,12 @@ import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700
 import proxy-app-auth dozzle.{$SITE_ADDRESS} dozzle:8080
 
+# 子路径服务聚合仅适用于支持baseURL的应用）
+#lot.{$SITE_ADDRESS} {
+#	encode zstd gzip
+#	import subpath mq rabbitmq:15672
+#}
+
 # import proxy-app ssh.{$SITE_ADDRESS}  ssh:8182
 # import proxy-app app.{$SITE_ADDRESS}  chatNext:3000
 
