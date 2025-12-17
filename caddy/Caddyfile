@@ -18,7 +18,9 @@ import proxy-app ws.{$SITE_ADDRESS} php-reverb:8080
 import proxy-app mo.{$SITE_ADDRESS} minio:9001
 import proxy-app mos.{$SITE_ADDRESS} minio:9000
 import proxy-app mq.{$SITE_ADDRESS} rabbitmq:15672
-import proxy-app push.{$SITE_ADDRESS} gotify:80
+import proxy-app msg.{$SITE_ADDRESS} gotify:80
+
+#import proxy-app-subpath msg.{$SITE_ADDRESS} msg gotify:80
 
 import proxy-app-auth home.{$SITE_ADDRESS} homepage:3000
 import proxy-app-auth search.{$SITE_ADDRESS} meilisearch:7700

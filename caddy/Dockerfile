@@ -6,6 +6,7 @@ COPY templates /etc/caddy/templates
 COPY startup.sh /usr/local/bin/startup.sh
 COPY Caddyfile /etc/caddy/Caddyfile
 RUN chmod +x /usr/local/bin/startup.sh
+#ENV GOMAXPROCS=2
 
 CMD ["/usr/local/bin/startup.sh"]
 
