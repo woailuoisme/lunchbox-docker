@@ -17,6 +17,7 @@ services:
       - "443:443"
       - "443:443/udp"
       - "8080:8080"
+      - "42375:2375"
       - "45432:45432"
       - "46379:46379"
     volumes:
@@ -29,6 +30,9 @@ services:
         condition: service_healthy
       dozzle:
         condition: service_healthy
+      docker-proxy:
+        condition: service_healthy
+
     networks:
       - frontend
       - backend
@@ -208,6 +212,15 @@ services:
     depends_on:
       php-horizon:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
 
   #  php-worker:
   #    build:
@@ -254,10 +267,6 @@ services:
     command: --requirepass ${REDIS_PASSWORD}
     ports:
       - "${REDIS_PORT:-6379}:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      retries: 3
-      timeout: 5s
     networks:
       - backend
       - frontend
@@ -267,6 +276,7 @@ services:
       context: ./meilisearch
       args:
         - TIMEZONE=${TIMEZONE:-Asia/Shanghai}
+        - MEILI_VERSION=${MEILI_VERSION:-v1.30}
     container_name: meilisearch
     restart: always
     environment:
@@ -280,25 +290,25 @@ services:
       - frontend
       - backend
 
-  rabbitmq:
-    build:
-      context: ./rabbitmq
-      dockerfile: Dockerfile
-    container_name: rabbitmq
-    restart: always
-    ports:
-      - "${RABBITMQ_PORT:-5672}:5672"
-      - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"
-    environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
-    volumes:
-      - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
-      # - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
-      - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
-    networks:
-      - backend
+#  rabbitmq:
+#    build:
+#      context: ./rabbitmq
+#      dockerfile: Dockerfile
+#    container_name: rabbitmq
+#    restart: always
+#    ports:
+#      - "${RABBITMQ_PORT:-5672}:5672"
+#      - "${RABBITMQ_DASHBOARD_PORT:-15672}:15672"
+#    environment:
+#      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+#      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+#      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_DEFAULT_VHOST:-app-host}
+#    volumes:
+#      - ${DATA_PATH}rabbitmq:/var/lib/rabbitmq
+#      # - ${CONFIG_PATH}rabbitmq/config:/etc/rabbitmq
+#      - ${LOG_PATH}rabbitmq:/var/log/rabbitmq
+#    networks:
+#      - backend
 
   minio:
     build:
@@ -355,18 +365,14 @@ services:
       - backend
 
   docker-proxy:
-    image: tecnativa/docker-socket-proxy:v0.4.1
+    build:
+      context: ./docker-proxy
     container_name: docker-proxy
-    environment:
-      - CONTAINERS=1 # Allow access to viewing containers
-      - SERVICES=1 # Allow access to viewing services (necessary when using Docker Swarm)
-      - TASKS=1 # Allow access to viewing tasks (necessary when using Docker Swarm)
-      - POST=0 # Disallow any POST operations (effectively read-only)
-#    ports:
-#      - "62375:2375"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     restart: always
+    security_opt:
+      - no-new-privileges:true
     networks:
       - backend
       - frontend

@@ -13,7 +13,7 @@ RUN apk update && apk add --no-cache tzdata && \
     cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
     echo "${TIMEZONE}" > /etc/timezone && \
     apk del tzdata
-## For security settings uncomment, make the dir, copy conf, and also start with the conf, to use it
+
 RUN mkdir -p /usr/local/etc/redis
 COPY redis.conf /usr/local/etc/redis/redis.conf
 
@@ -21,5 +21,7 @@ VOLUME /data
 
 EXPOSE 6379
 
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+    CMD redis-cli ping || exit 1
+
 CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
-#CMD ["redis-server"]
