@@ -32,7 +32,6 @@ services:
         condition: service_healthy
       docker-proxy:
         condition: service_healthy
-
     networks:
       - frontend
       - backend
