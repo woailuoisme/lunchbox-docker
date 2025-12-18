@@ -37,7 +37,7 @@ COPY supervisord.conf /usr/local/etc/supervisord.conf
 HEALTHCHECK --interval=60s --timeout=10s --start-period=5s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
 
-EXPOSE ${APP_PORT} 9103
+EXPOSE ${APP_PORT} 6001
 WORKDIR $APP_PATH
 USER www-data
 CMD ["/usr/local/bin/startup.sh"]

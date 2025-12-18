@@ -69,8 +69,8 @@ RUN mkdir -p /home/www-data/.ssh \
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
     CMD sh -c 'SCRIPT_NAME=/ping SCRIPT_FILENAME=/ping REQUEST_METHOD=GET cgi-fcgi -bind -connect 127.0.0.1:9000 | grep -q pong'
 
-WORKDIR /var/www
-# php-fpm  laravel-reverb laravel-octande-frankenphp
+#WORKDIR /var/www
+WORKDIR $APP_PATH
 EXPOSE 9000 8080 8001
 USER www-data
 ENTRYPOINT ["/usr/local/bin/startup.sh"]
