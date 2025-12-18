@@ -118,10 +118,15 @@ check_requirements() {
 
 # 检查目录
 check_directories() {
-    # 检查数据目录
+    # 检查并创建数据目录
     if [ ! -d "$DATA_DIR" ]; then
-        log_error "数据目录不存在: $DATA_DIR"
-        return 1
+        log_warning "数据目录不存在: $DATA_DIR"
+        log_info "创建数据目录..."
+        mkdir -p "$DATA_DIR" || {
+            log_error "无法创建数据目录"
+            return 1
+        }
+        log_success "数据目录创建成功"
     fi
 
     # 创建备份目录
@@ -370,38 +375,49 @@ restore_backup() {
 # 主函数
 main() {
     local command="$1"
+    
+    # 检查是否提供了命令
+    if [ -z "$command" ]; then
+        show_help
+        exit 0
+    fi
+    
     shift
 
-    # 解析全局选项
-    while [[ $# -gt 0 ]]; do
-        case "$1" in
-            -t|--type)
-                COMPRESS_TYPE="$2"
-                shift 2
-                ;;
-            -c|--no-compress)
-                COMPRESS=false
-                shift
-                ;;
-            -m|--max)
-                MAX_BACKUPS="$2"
-                shift 2
-                ;;
-            *)
-                break
-                ;;
-        esac
-    done
-
-    # 检查环境和目录
-    if ! check_requirements || ! check_directories; then
-        exit 1
-    fi
-
+    # 解析命令特定的选项
     case "$command" in
         backup)
+            # 解析备份选项
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    -t|--type)
+                        COMPRESS_TYPE="$2"
+                        shift 2
+                        ;;
+                    -c|--no-compress)
+                        COMPRESS=false
+                        shift
+                        ;;
+                    -m|--max)
+                        MAX_BACKUPS="$2"
+                        shift 2
+                        ;;
+                    *)
+                        log_error "未知选项: $1"
+                        show_help
+                        exit 1
+                        ;;
+                esac
+            done
+            
+            # 检查环境和目录
+            if ! check_requirements || ! check_directories; then
+                exit 1
+            fi
+            
             create_backup
             ;;
+            
         restore)
             local restore_file=""
             local auto_confirm="no"
@@ -418,21 +434,42 @@ main() {
                         shift
                         ;;
                     *)
-                        shift
+                        log_error "未知选项: $1"
+                        show_help
+                        exit 1
                         ;;
                 esac
             done
+            
+            # 检查环境和目录
+            if ! check_requirements || ! check_directories; then
+                exit 1
+            fi
 
             restore_backup "$restore_file" "$auto_confirm"
             ;;
+            
         list)
+            # list 命令不接受额外参数
+            if [[ $# -gt 0 ]]; then
+                log_warning "list 命令不接受额外参数，忽略: $*"
+            fi
+            
+            # 检查目录
+            if ! check_directories; then
+                exit 1
+            fi
+            
             list_backups
             ;;
-        help|"")
+            
+        help)
             show_help
             ;;
+            
         *)
             log_error "未知命令: $command"
+            echo ""
             show_help
             exit 1
             ;;
